@@ -5,6 +5,7 @@ const scoreEl = document.getElementById("score");
 const livesEl = document.getElementById("lives");
 const levelEl = document.getElementById("level");
 const messageEl = document.getElementById("message");
+const instructionEl = document.getElementById("instruction");
 
 const TAU = Math.PI * 2;
 const ringCount = 5;
@@ -103,6 +104,7 @@ function startGame() {
   shake = 0;
   makeHazards();
   placeBonusStar();
+  instructionEl.classList.add("hidden");
   updateHud("Cross the rings. Don't crash.");
 }
 

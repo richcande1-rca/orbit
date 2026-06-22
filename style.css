@@ -42,13 +42,22 @@ body {
   z-index: 10;
 }
 
+.hud-left {
+  flex: 1;
+}
+
 .title {
   letter-spacing: 0.32em;
   font-weight: 800;
   font-size: clamp(1.2rem, 4vw, 2.2rem);
-  margin-left: 0.32em;
   text-shadow: 0 0 12px rgba(133, 231, 255, 0.72);
   flex: 0 0 auto;
+}
+
+.hud-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .stats {
@@ -63,7 +72,6 @@ body {
   box-shadow: 0 0 26px rgba(83, 213, 255, 0.12) inset;
   font-size: clamp(0.7rem, 2.5vw, 0.85rem);
   white-space: nowrap;
-  flex: 0 0 auto;
 }
 
 .stats strong {
@@ -72,23 +80,23 @@ body {
 
 .instruction {
   position: fixed;
-  top: 50%;
+  top: clamp(60px, 12vh, 120px);
   left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(0.95rem, 3vw, 1.2rem);
+  transform: translateX(-50%);
+  font-size: clamp(0.9rem, 2.8vw, 1.1rem);
   font-weight: 600;
   letter-spacing: 0.02em;
   text-align: center;
   line-height: 1.4;
-  max-width: min(380px, calc(100vw - 28px));
-  padding: 12px 16px;
+  max-width: min(360px, calc(100vw - 28px));
+  padding: 10px 14px;
   border-radius: 8px;
   background: rgba(4, 6, 18, 0.48);
   border: 1px solid rgba(133, 231, 255, 0.18);
   text-shadow: 0 0 8px rgba(133, 231, 255, 0.5);
   pointer-events: none;
   opacity: 1;
-  transition: opacity 0.3s ease-out;
+  transition: opacity 0.4s ease-out;
   z-index: 5;
 }
 
