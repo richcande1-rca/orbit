@@ -29,17 +29,17 @@ body {
   display: block;
 }
 
-.hud {
+.hud-header {
   position: fixed;
-  inset: 0;
-  pointer-events: none;
-  padding: max(18px, env(safe-area-inset-top)) 18px max(22px, env(safe-area-inset-bottom));
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: max(18px, env(safe-area-inset-top)) 18px 12px;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  text-align: center;
-  text-shadow: 0 0 12px rgba(133, 231, 255, 0.72);
+  pointer-events: none;
+  z-index: 10;
 }
 
 .title {
@@ -47,28 +47,62 @@ body {
   font-weight: 800;
   font-size: clamp(1.2rem, 4vw, 2.2rem);
   margin-left: 0.32em;
+  text-shadow: 0 0 12px rgba(133, 231, 255, 0.72);
+  flex: 0 0 auto;
 }
 
 .stats {
-  width: min(460px, calc(100vw - 28px));
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 14px;
+  justify-content: flex-end;
+  gap: 14px;
+  padding: 8px 12px;
   border: 1px solid rgba(151, 235, 255, 0.22);
   border-radius: 999px;
   background: rgba(2, 8, 22, 0.38);
   backdrop-filter: blur(10px);
   box-shadow: 0 0 26px rgba(83, 213, 255, 0.12) inset;
-  font-size: clamp(0.78rem, 3vw, 0.95rem);
+  font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .stats strong {
   color: #ffffff;
 }
 
+.instruction {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(0.95rem, 3vw, 1.2rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-align: center;
+  line-height: 1.4;
+  max-width: min(380px, calc(100vw - 28px));
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: rgba(4, 6, 18, 0.48);
+  border: 1px solid rgba(133, 231, 255, 0.18);
+  text-shadow: 0 0 8px rgba(133, 231, 255, 0.5);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+  z-index: 5;
+}
+
+.instruction.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .message {
-  min-height: 2.1rem;
+  position: fixed;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  min-height: 2rem;
   max-width: min(520px, calc(100vw - 28px));
   padding: 10px 16px;
   border-radius: 999px;
@@ -76,12 +110,21 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.12);
   font-weight: 700;
   letter-spacing: 0.04em;
+  text-align: center;
+  font-size: clamp(0.8rem, 2.5vw, 0.95rem);
   box-shadow: 0 0 28px rgba(255, 255, 255, 0.06) inset;
+  pointer-events: none;
+  z-index: 10;
 }
 
 @media (min-width: 720px) {
-  .hud {
+  .hud-header {
     padding-top: 24px;
-    padding-bottom: 28px;
+    padding-right: 28px;
+  }
+
+  .stats {
+    gap: 16px;
+    padding: 10px 14px;
   }
 }
