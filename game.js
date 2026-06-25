@@ -6,6 +6,7 @@ const livesEl = document.getElementById("lives");
 const levelEl = document.getElementById("level");
 const messageEl = document.getElementById("message");
 const instructionEl = document.getElementById("instruction");
+const pauseButton = document.getElementById("pause");
 
 const TAU = Math.PI * 2;
 const ringCount = 5;
@@ -109,11 +110,36 @@ function startGame() {
   makeHazards();
   placeBonusStar();
   instructionEl.classList.add("hidden");
+  updatePauseButton();
   updateHud("Planet out. Rings in.");
 }
 
 function restartAfterGameOver() {
   startGame();
+}
+
+function updatePauseButton() {
+  if (!pauseButton) return;
+
+  const canPause = state === "running" || state === "paused";
+  pauseButton.disabled = !canPause;
+  pauseButton.textContent = state === "paused" ? "▶" : "⏸";
+  pauseButton.setAttribute("aria-label", state === "paused" ? "Resume game" : "Pause game");
+}
+
+function togglePause() {
+  if (state === "running") {
+    state = "paused";
+    updatePauseButton();
+    updateHud("Paused. Tap to resume.");
+    return;
+  }
+
+  if (state === "paused") {
+    state = "running";
+    updatePauseButton();
+    updateHud("Planet out. Rings in.");
+  }
 }
 
 function makeHazards() {
@@ -201,6 +227,11 @@ function movePlayer(direction) {
 function handleTap(event) {
   event.preventDefault();
 
+  if (state === "paused") {
+    togglePause();
+    return;
+  }
+
   const planetTap = tappedPlanet(event);
 
   if (state === "waiting") {
@@ -239,6 +270,7 @@ function crash() {
 
   if (lives <= 0) {
     state = "gameover";
+    updatePauseButton();
     updateHud(`Game over. Score ${score}. Tap planet to restart.`);
   } else {
     updateHud("Crash. Back to the inner ring.");
@@ -246,6 +278,8 @@ function crash() {
 }
 
 function update(dt) {
+  if (state === "paused") return;
+
   const timeScale = state === "running" ? 1 : 0.35;
 
   for (const star of bgStars) {
@@ -536,7 +570,20 @@ function loop(now) {
 
 window.addEventListener("resize", resize);
 canvas.addEventListener("pointerdown", handleTap, { passive: false });
+if (pauseButton) {
+  pauseButton.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    togglePause();
+  });
+}
 window.addEventListener("keydown", (event) => {
+  if (event.code === "KeyP" || event.code === "Escape") {
+    event.preventDefault();
+    togglePause();
+    return;
+  }
+
   if (event.code === "Space" || event.code === "Enter") {
     handleTap(event);
   }
@@ -547,5 +594,6 @@ document.addEventListener("gesturestart", (event) => event.preventDefault());
 resize();
 makeHazards();
 placeBonusStar();
+updatePauseButton();
 updateHud("Tap to begin");
 requestAnimationFrame(loop);
