@@ -595,5 +595,5 @@ resize();
 makeHazards();
 placeBonusStar();
 updatePauseButton();
-updateHud("Tap to begin");
+updateHud();
 requestAnimationFrame(loop);
