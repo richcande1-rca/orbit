@@ -7,6 +7,7 @@ const levelEl = document.getElementById("level");
 const messageEl = document.getElementById("message");
 const instructionEl = document.getElementById("instruction");
 const pauseButton = document.getElementById("pause");
+const resetButton = document.getElementById("reset");
 
 const TAU = Math.PI * 2;
 const ringCount = 5;
@@ -110,7 +111,7 @@ function startGame() {
   makeHazards();
   placeBonusStar();
   instructionEl.classList.add("hidden");
-  updatePauseButton();
+  updateControlButtons();
   updateHud("Planet out. Rings in.");
 }
 
@@ -118,26 +119,38 @@ function restartAfterGameOver() {
   startGame();
 }
 
-function updatePauseButton() {
-  if (!pauseButton) return;
+function resetRun() {
+  if (state === "waiting") return;
 
-  const canPause = state === "running" || state === "paused";
-  pauseButton.disabled = !canPause;
-  pauseButton.textContent = state === "paused" ? "▶" : "⏸";
-  pauseButton.setAttribute("aria-label", state === "paused" ? "Resume game" : "Pause game");
+  startGame();
+  updateHud("Reset. Planet out. Rings in.");
+}
+
+function updateControlButtons() {
+  if (pauseButton) {
+    const canPause = state === "running" || state === "paused";
+    pauseButton.disabled = !canPause;
+    pauseButton.textContent = state === "paused" ? "▶" : "⏸";
+    pauseButton.setAttribute("aria-label", state === "paused" ? "Resume game" : "Pause game");
+  }
+
+  if (resetButton) {
+    resetButton.disabled = state === "waiting";
+    resetButton.setAttribute("aria-label", "Reset run");
+  }
 }
 
 function togglePause() {
   if (state === "running") {
     state = "paused";
-    updatePauseButton();
+    updateControlButtons();
     updateHud("Paused. Tap to resume.");
     return;
   }
 
   if (state === "paused") {
     state = "running";
-    updatePauseButton();
+    updateControlButtons();
     updateHud("Planet out. Rings in.");
   }
 }
@@ -270,7 +283,7 @@ function crash() {
 
   if (lives <= 0) {
     state = "gameover";
-    updatePauseButton();
+    updateControlButtons();
     updateHud(`Game over. Score ${score}. Tap planet to restart.`);
   } else {
     updateHud("Crash. Back to the inner ring.");
@@ -577,6 +590,13 @@ if (pauseButton) {
     togglePause();
   });
 }
+if (resetButton) {
+  resetButton.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    resetRun();
+  });
+}
 window.addEventListener("keydown", (event) => {
   if (event.code === "KeyP" || event.code === "Escape") {
     event.preventDefault();
@@ -594,6 +614,6 @@ document.addEventListener("gesturestart", (event) => event.preventDefault());
 resize();
 makeHazards();
 placeBonusStar();
-updatePauseButton();
+updateControlButtons();
 updateHud();
 requestAnimationFrame(loop);
