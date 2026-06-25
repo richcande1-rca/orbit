@@ -9,6 +9,8 @@ const instructionEl = document.getElementById("instruction");
 
 const TAU = Math.PI * 2;
 const ringCount = 5;
+const moveCooldownSeconds = 0.22;
+const laneSpeedRates = [0.68, 1.08, 0.84, 1.34, 1.58];
 
 let width = 0;
 let height = 0;
@@ -27,6 +29,7 @@ let level = 1;
 let flash = 0;
 let shake = 0;
 let invulnerable = 0;
+let moveCooldown = 0;
 
 const player = {
   lane: 0,
@@ -99,13 +102,14 @@ function startGame() {
   level = 1;
   player.angle = -Math.PI / 2;
   player.lane = 0;
+  moveCooldown = 0;
   invulnerable = 1.0;
   flash = 0;
   shake = 0;
   makeHazards();
   placeBonusStar();
   instructionEl.classList.add("hidden");
-  updateHud("Cross the rings. Don't crash.");
+  updateHud("Planet out. Rings in.");
 }
 
 function restartAfterGameOver() {
@@ -118,12 +122,14 @@ function makeHazards() {
 
   for (let lane = 0; lane < ringCount; lane++) {
     const count = lane === 0 ? 1 : 1 + (level > 4 && Math.random() < 0.42 ? 1 : 0);
+    const laneRate = laneSpeedRates[lane] || 1;
+
     for (let i = 0; i < count; i++) {
       const direction = lane % 2 === 0 ? 1 : -1;
       hazards.push({
         lane,
         angle: rand(0, TAU),
-        speed: direction * rand(0.5, 0.9 + lane * 0.08) * speedScale,
+        speed: direction * rand(0.5, 0.86) * laneRate * speedScale,
         size: rand(10, 15),
         wobble: rand(0, TAU),
       });
@@ -147,22 +153,36 @@ function updateHud(text) {
   if (text) messageEl.textContent = text;
 }
 
-function handleTap(event) {
-  event.preventDefault();
+function tapPoint(event) {
+  if (typeof event.clientX !== "number" || typeof event.clientY !== "number") {
+    return { x: centerX, y: centerY };
+  }
 
-  if (state === "waiting") {
-    startGame();
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top,
+  };
+}
+
+function tappedPlanet(event) {
+  const point = tapPoint(event);
+  const dx = point.x - centerX;
+  const dy = point.y - centerY;
+  const planetTapRadius = Math.min(rings[0] - 8, planetRadius * 1.75);
+  return Math.hypot(dx, dy) <= planetTapRadius;
+}
+
+function movePlayer(direction) {
+  if (moveCooldown > 0) return;
+
+  if (direction < 0 && player.lane === 0) {
+    updateHud("Inner orbit. Tap planet to go out.");
     return;
   }
 
-  if (state === "gameover") {
-    restartAfterGameOver();
-    return;
-  }
-
-  if (state !== "running") return;
-
-  player.lane += 1;
+  player.lane += direction;
+  moveCooldown = moveCooldownSeconds;
   flash = 0.2;
 
   if (player.lane >= ringCount) {
@@ -172,10 +192,38 @@ function handleTap(event) {
     invulnerable = 0.9;
     makeHazards();
     placeBonusStar();
-    updateHud("Clear! Again.");
+    updateHud(`Level ${level}. Planet out. Rings in.`);
   } else {
-    updateHud("Good. Keep crossing.");
+    updateHud(direction > 0 ? "Outward." : "Inward.");
   }
+}
+
+function handleTap(event) {
+  event.preventDefault();
+
+  const planetTap = tappedPlanet(event);
+
+  if (state === "waiting") {
+    if (planetTap) {
+      startGame();
+    } else {
+      updateHud("Tap planet to begin.");
+    }
+    return;
+  }
+
+  if (state === "gameover") {
+    if (planetTap) {
+      restartAfterGameOver();
+    } else {
+      updateHud(`Game over. Score ${score}. Tap planet to restart.`);
+    }
+    return;
+  }
+
+  if (state !== "running") return;
+
+  movePlayer(planetTap ? 1 : -1);
 }
 
 function crash() {
@@ -186,11 +234,12 @@ function crash() {
   flash = 0.55;
   player.lane = 0;
   player.angle -= 0.2;
+  moveCooldown = moveCooldownSeconds;
   invulnerable = 1.1;
 
   if (lives <= 0) {
     state = "gameover";
-    updateHud(`Game over. Score ${score}. Tap to restart.`);
+    updateHud(`Game over. Score ${score}. Tap planet to restart.`);
   } else {
     updateHud("Crash. Back to the inner ring.");
   }
@@ -212,6 +261,7 @@ function update(dt) {
   if (flash > 0) flash = Math.max(0, flash - dt);
   if (shake > 0) shake = Math.max(0, shake - dt);
   if (invulnerable > 0) invulnerable = Math.max(0, invulnerable - dt);
+  if (moveCooldown > 0) moveCooldown = Math.max(0, moveCooldown - dt);
 
   player.angle = (player.angle + player.speed * dt * timeScale) % TAU;
 
