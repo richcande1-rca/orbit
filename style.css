@@ -44,6 +44,30 @@ body {
 
 .hud-left {
   flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.pause-button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(151, 235, 255, 0.26);
+  border-radius: 999px;
+  background: rgba(2, 8, 22, 0.44);
+  color: #eef7ff;
+  box-shadow: 0 0 22px rgba(83, 213, 255, 0.12) inset, 0 0 14px rgba(83, 213, 255, 0.08);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+}
+
+.pause-button:disabled {
+  opacity: 0.34;
+  cursor: default;
 }
 
 .title {
