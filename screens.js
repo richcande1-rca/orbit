@@ -3,6 +3,9 @@
 const orbitMilestoneRun = 5;
 const orbitFinalRun = 10;
 
+let orbitMilestoneShown = false;
+let orbitCompleteShown = false;
+
 function setOrbitScreen(title, lines) {
   instructionEl.replaceChildren();
 
@@ -21,6 +24,8 @@ function setOrbitScreen(title, lines) {
 }
 
 function showOrbitTrainingScreen() {
+  orbitMilestoneShown = false;
+  orbitCompleteShown = false;
   setOrbitScreen("TRAINING ORBIT", [
     "Tap planet to move outward.",
     "Tap rings to move inward.",
@@ -32,6 +37,7 @@ function showOrbitTrainingScreen() {
 }
 
 function showOrbitMilestoneScreen() {
+  orbitMilestoneShown = true;
   state = "milestone";
   player.lane = 0;
   moveCooldown = 0;
@@ -57,6 +63,7 @@ function continueFromOrbitMilestone() {
 }
 
 function showOrbitCompleteScreen() {
+  orbitCompleteShown = true;
   state = "complete";
   player.lane = ringCount - 1;
   moveCooldown = 0;
@@ -72,43 +79,22 @@ function showOrbitCompleteScreen() {
   updateControlButtons();
 }
 
-movePlayer = function movePlayerWithScreens(direction) {
-  if (moveCooldown > 0) return;
-
-  if (direction < 0 && player.lane === 0) {
-    updateHud("Inner orbit. Tap planet to go out.");
-    return;
+function watchOrbitProgress() {
+  if (state === "running" && level === 1 && score === 0) {
+    orbitMilestoneShown = false;
+    orbitCompleteShown = false;
   }
 
-  player.lane += direction;
-  moveCooldown = moveCooldownSeconds;
-  flash = 0.2;
-
-  if (player.lane >= ringCount) {
-    const clearedRun = level;
-    score += 1;
-
-    if (clearedRun >= orbitFinalRun) {
-      showOrbitCompleteScreen();
-      return;
-    }
-
-    level += 1;
-    player.lane = 0;
-    invulnerable = 0.9;
-    makeHazards();
-    placeBonusStar();
-
-    if (clearedRun === orbitMilestoneRun) {
-      showOrbitMilestoneScreen();
-      return;
-    }
-
-    updateHud(`Level ${level}. Planet out. Rings in.`);
-  } else {
-    updateHud(direction > 0 ? "Outward." : "Inward.");
+  if (state === "running" && !orbitMilestoneShown && level > orbitMilestoneRun) {
+    showOrbitMilestoneScreen();
   }
-};
+
+  if (state === "running" && !orbitCompleteShown && level > orbitFinalRun) {
+    showOrbitCompleteScreen();
+  }
+
+  requestAnimationFrame(watchOrbitProgress);
+}
 
 canvas.addEventListener(
   "pointerdown",
@@ -134,3 +120,4 @@ canvas.addEventListener(
 );
 
 showOrbitTrainingScreen();
+requestAnimationFrame(watchOrbitProgress);
