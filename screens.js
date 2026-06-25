@@ -27,6 +27,27 @@ function stopOrbitInput(event) {
   event.stopImmediatePropagation();
 }
 
+makeHazards = function makeHazardsWithSafeInnerRing() {
+  const speedScale = 1 + (level - 1) * 0.09;
+  hazards = [];
+
+  for (let lane = 1; lane < ringCount; lane++) {
+    const count = 1 + (level > 4 && Math.random() < 0.42 ? 1 : 0);
+    const laneRate = laneSpeedRates[lane] || 1;
+
+    for (let i = 0; i < count; i++) {
+      const direction = lane % 2 === 0 ? 1 : -1;
+      hazards.push({
+        lane,
+        angle: rand(0, TAU),
+        speed: direction * rand(0.5, 0.86) * laneRate * speedScale,
+        size: rand(10, 15),
+        wobble: rand(0, TAU),
+      });
+    }
+  }
+};
+
 function setOrbitScreen(title, lines, tone = "normal") {
   instructionEl.replaceChildren();
   instructionEl.classList.remove("hidden", "screen-special", "screen-final");
