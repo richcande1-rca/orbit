@@ -11,7 +11,7 @@ const resetButton = document.getElementById("reset");
 
 const TAU = Math.PI * 2;
 const ringCount = 5;
-const moveCooldownSeconds = 0.22;
+const moveCooldownSeconds = 0.48;
 const laneSpeedRates = [0.68, 1.08, 0.84, 1.34, 1.58];
 
 let width = 0;
