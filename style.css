@@ -149,6 +149,10 @@ body {
   z-index: 10;
 }
 
+.message:empty {
+  display: none;
+}
+
 @media (min-width: 720px) {
   .hud-header {
     padding-top: 24px;
