@@ -48,9 +48,21 @@ body {
   justify-content: flex-start;
 }
 
-.pause-button {
-  width: 42px;
-  height: 42px;
+.control-panel {
+  display: flex;
+  gap: 8px;
+  padding: 5px;
+  border: 1px solid rgba(151, 235, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(2, 8, 22, 0.26);
+  box-shadow: 0 0 22px rgba(83, 213, 255, 0.08) inset;
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+}
+
+.control-button {
+  width: 36px;
+  height: 36px;
   border: 1px solid rgba(151, 235, 255, 0.26);
   border-radius: 999px;
   background: rgba(2, 8, 22, 0.44);
@@ -62,10 +74,9 @@ body {
   line-height: 1;
   cursor: pointer;
   pointer-events: auto;
-  backdrop-filter: blur(10px);
 }
 
-.pause-button:disabled {
+.control-button:disabled {
   opacity: 0.34;
   cursor: default;
 }
