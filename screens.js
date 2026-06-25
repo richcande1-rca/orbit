@@ -2,12 +2,37 @@
 // Training -> Run 5 checkpoint -> Run 10 completion.
 const orbitMilestoneRun = 5;
 const orbitFinalRun = 10;
+const orbitLevelHoldMs = 700;
+const orbitSpecialHoldMs = 1350;
 
 let orbitMilestoneShown = false;
 let orbitCompleteShown = false;
+let orbitLastSeenLevel = 1;
+let orbitInputUnlockAt = 0;
 
-function setOrbitScreen(title, lines) {
+function orbitNow() {
+  return performance.now();
+}
+
+function holdOrbitInput(ms) {
+  orbitInputUnlockAt = Math.max(orbitInputUnlockAt, orbitNow() + ms);
+}
+
+function orbitInputLocked() {
+  return orbitNow() < orbitInputUnlockAt;
+}
+
+function stopOrbitInput(event) {
+  event.preventDefault();
+  event.stopImmediatePropagation();
+}
+
+function setOrbitScreen(title, lines, tone = "normal") {
   instructionEl.replaceChildren();
+  instructionEl.classList.remove("hidden", "screen-special", "screen-final");
+
+  if (tone === "special") instructionEl.classList.add("screen-special");
+  if (tone === "final") instructionEl.classList.add("screen-final");
 
   const heading = document.createElement("strong");
   heading.textContent = title;
@@ -19,13 +44,14 @@ function setOrbitScreen(title, lines) {
     instructionEl.appendChild(item);
   }
 
-  instructionEl.classList.remove("hidden");
   messageEl.textContent = "";
 }
 
 function showOrbitTrainingScreen() {
   orbitMilestoneShown = false;
   orbitCompleteShown = false;
+  orbitLastSeenLevel = 1;
+  orbitInputUnlockAt = 0;
   setOrbitScreen("TRAINING ORBIT", [
     "Tap planet to move outward.",
     "Tap rings to move inward.",
@@ -43,11 +69,12 @@ function showOrbitMilestoneScreen() {
   moveCooldown = 0;
   invulnerable = 0;
   flash = 0.45;
+  holdOrbitInput(orbitSpecialHoldMs);
 
   setOrbitScreen("DEEP ORBIT", [
     "Good. Now it gets faster.",
     "Tap planet to continue.",
-  ]);
+  ], "special");
   updateHud("");
   updateControlButtons();
 }
@@ -69,12 +96,13 @@ function showOrbitCompleteScreen() {
   moveCooldown = 0;
   invulnerable = 0;
   flash = 0.9;
+  holdOrbitInput(orbitSpecialHoldMs);
 
   setOrbitScreen("APOGEE REACHED", [
     "You escaped the orbit.",
     `Final score: ${score}`,
     "Tap planet to restart.",
-  ]);
+  ], "final");
   updateHud("");
   updateControlButtons();
 }
@@ -83,6 +111,13 @@ function watchOrbitProgress() {
   if (state === "running" && level === 1 && score === 0) {
     orbitMilestoneShown = false;
     orbitCompleteShown = false;
+    orbitLastSeenLevel = 1;
+    orbitInputUnlockAt = 0;
+  }
+
+  if (state === "running" && level !== orbitLastSeenLevel) {
+    if (level > orbitLastSeenLevel) holdOrbitInput(orbitLevelHoldMs);
+    orbitLastSeenLevel = level;
   }
 
   if (state === "running" && !orbitMilestoneShown && level > orbitMilestoneRun) {
@@ -99,10 +134,14 @@ function watchOrbitProgress() {
 canvas.addEventListener(
   "pointerdown",
   (event) => {
+    if ((state === "running" || state === "milestone" || state === "complete") && orbitInputLocked()) {
+      stopOrbitInput(event);
+      return;
+    }
+
     if (state !== "milestone" && state !== "complete") return;
 
-    event.preventDefault();
-    event.stopImmediatePropagation();
+    stopOrbitInput(event);
 
     if (!tappedPlanet(event)) {
       updateHud(state === "milestone" ? "Tap planet to continue." : "Tap planet to restart.");
@@ -117,6 +156,31 @@ canvas.addEventListener(
     startGame();
   },
   { passive: false, capture: true }
+);
+
+window.addEventListener(
+  "keydown",
+  (event) => {
+    if (event.code !== "Space" && event.code !== "Enter") return;
+    if (state !== "running" && state !== "milestone" && state !== "complete") return;
+
+    if (orbitInputLocked()) {
+      stopOrbitInput(event);
+      return;
+    }
+
+    if (state === "milestone") {
+      stopOrbitInput(event);
+      continueFromOrbitMilestone();
+      return;
+    }
+
+    if (state === "complete") {
+      stopOrbitInput(event);
+      startGame();
+    }
+  },
+  { capture: true }
 );
 
 showOrbitTrainingScreen();
