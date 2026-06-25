@@ -1,14 +1,16 @@
 // Adds the Orbit screen arc without changing the core renderer.
-// Training -> Run 5 checkpoint -> Run 10 completion.
+// Training -> layered run cards -> Run 5 checkpoint -> Run 10 completion.
 const orbitMilestoneRun = 5;
 const orbitFinalRun = 10;
 const orbitLevelHoldMs = 700;
+const orbitLayerCardMs = 950;
 const orbitSpecialHoldMs = 1350;
 
 let orbitMilestoneShown = false;
 let orbitCompleteShown = false;
 let orbitLastSeenLevel = 1;
 let orbitInputUnlockAt = 0;
+let orbitLayerHideAt = 0;
 
 function orbitNow() {
   return performance.now();
@@ -50,8 +52,9 @@ makeHazards = function makeHazardsWithSafeInnerRing() {
 
 function setOrbitScreen(title, lines, tone = "normal") {
   instructionEl.replaceChildren();
-  instructionEl.classList.remove("hidden", "screen-special", "screen-final");
+  instructionEl.classList.remove("hidden", "screen-layer", "screen-special", "screen-final");
 
+  if (tone === "layer") instructionEl.classList.add("screen-layer");
   if (tone === "special") instructionEl.classList.add("screen-special");
   if (tone === "final") instructionEl.classList.add("screen-final");
 
@@ -68,11 +71,55 @@ function setOrbitScreen(title, lines, tone = "normal") {
   messageEl.textContent = "";
 }
 
+function orbitLayerForRun(run) {
+  if (run <= 2) {
+    return {
+      title: "LOW ORBIT",
+      line: "Read the lanes. Choose the window.",
+    };
+  }
+
+  if (run <= 5) {
+    return {
+      title: "GRAVITY SHEAR",
+      line: "The traffic pulls harder now.",
+    };
+  }
+
+  if (run <= 9) {
+    return {
+      title: "DEEP FIELD",
+      line: "Stay patient. The gaps are moving.",
+    };
+  }
+
+  return {
+    title: "FINAL APPROACH",
+    line: "One clean climb to apogee.",
+  };
+}
+
+function showOrbitLayerCard(run) {
+  const layer = orbitLayerForRun(run);
+  orbitLayerHideAt = orbitNow() + orbitLayerCardMs;
+  holdOrbitInput(orbitLevelHoldMs);
+  setOrbitScreen(layer.title, [`Run ${run}`, layer.line], "layer");
+}
+
+function hideOrbitLayerCardIfReady() {
+  if (state !== "running") return;
+  if (!instructionEl.classList.contains("screen-layer")) return;
+  if (orbitNow() < orbitLayerHideAt) return;
+
+  instructionEl.classList.add("hidden");
+}
+
 function showOrbitTrainingScreen() {
   orbitMilestoneShown = false;
   orbitCompleteShown = false;
   orbitLastSeenLevel = 1;
   orbitInputUnlockAt = 0;
+  orbitLayerHideAt = 0;
   setOrbitScreen("TRAINING ORBIT", [
     "Tap planet to move outward.",
     "Tap rings to move inward.",
@@ -90,6 +137,7 @@ function showOrbitMilestoneScreen() {
   moveCooldown = 0;
   invulnerable = 0;
   flash = 0.45;
+  orbitLayerHideAt = 0;
   holdOrbitInput(orbitSpecialHoldMs);
 
   setOrbitScreen("DEEP ORBIT", [
@@ -117,6 +165,7 @@ function showOrbitCompleteScreen() {
   moveCooldown = 0;
   invulnerable = 0;
   flash = 0.9;
+  orbitLayerHideAt = 0;
   holdOrbitInput(orbitSpecialHoldMs);
 
   setOrbitScreen("APOGEE REACHED", [
@@ -134,21 +183,31 @@ function watchOrbitProgress() {
     orbitCompleteShown = false;
     orbitLastSeenLevel = 1;
     orbitInputUnlockAt = 0;
+    orbitLayerHideAt = 0;
   }
 
   if (state === "running" && level !== orbitLastSeenLevel) {
-    if (level > orbitLastSeenLevel) holdOrbitInput(orbitLevelHoldMs);
+    const advanced = level > orbitLastSeenLevel;
     orbitLastSeenLevel = level;
-  }
 
-  if (state === "running" && !orbitMilestoneShown && level > orbitMilestoneRun) {
-    showOrbitMilestoneScreen();
+    if (advanced) {
+      if (!orbitCompleteShown && level > orbitFinalRun) {
+        showOrbitCompleteScreen();
+      } else if (!orbitMilestoneShown && level > orbitMilestoneRun) {
+        showOrbitMilestoneScreen();
+      } else {
+        showOrbitLayerCard(level);
+      }
+    }
   }
 
   if (state === "running" && !orbitCompleteShown && level > orbitFinalRun) {
     showOrbitCompleteScreen();
+  } else if (state === "running" && !orbitMilestoneShown && level > orbitMilestoneRun) {
+    showOrbitMilestoneScreen();
   }
 
+  hideOrbitLayerCardIfReady();
   requestAnimationFrame(watchOrbitProgress);
 }
 
