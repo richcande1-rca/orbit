@@ -135,6 +135,12 @@ body {
   z-index: 5;
 }
 
+.instruction.screen-layer {
+  background: linear-gradient(135deg, rgba(7, 44, 80, 0.68), rgba(28, 18, 94, 0.64));
+  border-color: rgba(135, 221, 255, 0.5);
+  box-shadow: 0 0 28px rgba(83, 213, 255, 0.2), 0 0 36px rgba(155, 112, 255, 0.12) inset;
+}
+
 .instruction.screen-special {
   background: linear-gradient(135deg, rgba(80, 10, 28, 0.72), rgba(10, 18, 58, 0.76));
   border-color: rgba(255, 111, 124, 0.58);
@@ -160,6 +166,11 @@ body {
   text-shadow: 0 0 14px rgba(133, 231, 255, 0.78);
 }
 
+.instruction.screen-layer strong {
+  color: #eaffff;
+  text-shadow: 0 0 16px rgba(105, 226, 255, 0.9), 0 0 24px rgba(166, 120, 255, 0.3);
+}
+
 .instruction.screen-special strong,
 .instruction.screen-final strong {
   color: #fff2e8;
@@ -168,6 +179,18 @@ body {
 
 .instruction span {
   opacity: 0.92;
+}
+
+.instruction.screen-layer span {
+  color: #effbff;
+  opacity: 0.96;
+}
+
+.instruction.screen-layer span:first-of-type {
+  color: #ffe9a8;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .instruction.screen-special span,
