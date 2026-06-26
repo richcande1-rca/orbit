@@ -6,6 +6,8 @@ const orbitMoveCooldownSeconds = 0.4;
 const orbitLevelHoldMs = 700;
 const orbitLayerCardMs = 950;
 const orbitSpecialHoldMs = 1350;
+const orbitLowPowerMode = window.matchMedia("(pointer: coarse), (max-width: 720px)").matches;
+const orbitDprCap = orbitLowPowerMode ? 1.25 : 2;
 
 let orbitMilestoneShown = false;
 let orbitCompleteShown = false;
@@ -29,6 +31,52 @@ function stopOrbitInput(event) {
   event.preventDefault();
   event.stopImmediatePropagation();
 }
+
+makeBackground = function makeBackgroundPerformance() {
+  const starDensity = orbitLowPowerMode ? 7600 : 4300;
+  const minStars = orbitLowPowerMode ? 55 : 85;
+  const maxStars = orbitLowPowerMode ? 130 : 260;
+  const starCount = Math.floor(clamp((width * height) / starDensity, minStars, maxStars));
+
+  bgStars = Array.from({ length: starCount }, () => ({
+    x: Math.random() * width,
+    y: Math.random() * height,
+    r: rand(0.45, orbitLowPowerMode ? 1.45 : 1.85),
+    twinkle: rand(0, TAU),
+    speed: rand(0.25, 1.2),
+  }));
+
+  const dustCount = orbitLowPowerMode ? 10 : 26;
+  dust = Array.from({ length: dustCount }, () => ({
+    x: Math.random() * width,
+    y: Math.random() * height,
+    r: rand(24, orbitLowPowerMode ? 66 : 90),
+    drift: rand(-0.06, 0.06),
+    alpha: rand(0.018, orbitLowPowerMode ? 0.04 : 0.055),
+  }));
+};
+
+resize = function resizeOrbitPerformance() {
+  const dpr = Math.max(1, Math.min(orbitDprCap, window.devicePixelRatio || 1));
+  width = Math.floor(window.innerWidth);
+  height = Math.floor(window.innerHeight);
+  canvas.width = Math.floor(width * dpr);
+  canvas.height = Math.floor(height * dpr);
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  centerX = width / 2;
+  centerY = height / 2 + Math.min(24, height * 0.03);
+
+  const maxRadius = Math.min(width, height) * 0.41;
+  const inner = Math.max(72, Math.min(width, height) * 0.16);
+  const spacing = (maxRadius - inner) / (ringCount - 1);
+  rings = Array.from({ length: ringCount }, (_, i) => inner + i * spacing);
+  planetRadius = Math.max(34, inner * 0.52);
+
+  makeBackground();
+};
 
 makeHazards = function makeHazardsWithSafeInnerRing() {
   const speedScale = 1 + (level - 1) * 0.13;
@@ -289,5 +337,7 @@ window.addEventListener(
   { capture: true }
 );
 
+window.addEventListener("resize", resize);
+resize();
 showOrbitTrainingScreen();
 requestAnimationFrame(watchOrbitProgress);
