@@ -2,6 +2,7 @@
 // Training -> layered run cards -> Run 5 checkpoint -> Run 10 completion.
 const orbitMilestoneRun = 5;
 const orbitFinalRun = 10;
+const orbitMoveCooldownSeconds = 0.4;
 const orbitLevelHoldMs = 700;
 const orbitLayerCardMs = 950;
 const orbitSpecialHoldMs = 1350;
@@ -30,11 +31,11 @@ function stopOrbitInput(event) {
 }
 
 makeHazards = function makeHazardsWithSafeInnerRing() {
-  const speedScale = 1 + (level - 1) * 0.09;
+  const speedScale = 1 + (level - 1) * 0.13;
   hazards = [];
 
   for (let lane = 1; lane < ringCount; lane++) {
-    const count = 1 + (level > 4 && Math.random() < 0.42 ? 1 : 0);
+    const count = 1 + (level > 3 && Math.random() < 0.52 ? 1 : 0);
     const laneRate = laneSpeedRates[lane] || 1;
 
     for (let i = 0; i < count; i++) {
@@ -42,11 +43,36 @@ makeHazards = function makeHazardsWithSafeInnerRing() {
       hazards.push({
         lane,
         angle: rand(0, TAU),
-        speed: direction * rand(0.5, 0.86) * laneRate * speedScale,
+        speed: direction * rand(0.54, 0.92) * laneRate * speedScale,
         size: rand(10, 15),
         wobble: rand(0, TAU),
       });
     }
+  }
+};
+
+movePlayer = function movePlayerWithBalance(direction) {
+  if (moveCooldown > 0) return;
+
+  if (direction < 0 && player.lane === 0) {
+    updateHud("Inner orbit. Tap planet to go out.");
+    return;
+  }
+
+  player.lane += direction;
+  moveCooldown = orbitMoveCooldownSeconds;
+  flash = 0.2;
+
+  if (player.lane >= ringCount) {
+    score += 1;
+    level += 1;
+    player.lane = 0;
+    invulnerable = 0.9;
+    makeHazards();
+    placeBonusStar();
+    updateHud(`Level ${level}. Planet out. Rings in.`);
+  } else {
+    updateHud(direction > 0 ? "Outward." : "Inward.");
   }
 };
 
