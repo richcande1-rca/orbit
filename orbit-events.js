@@ -1,17 +1,14 @@
-// Orbit event layer: clear game-over cards, comet strikes, and a temporary comet test toggle.
+// Orbit event layer: clear game-over cards and comet strikes.
 (function orbitEventLayer() {
-  const cometMinRun = typeof orbitMilestoneRun === "number" ? orbitMilestoneRun : 5;
+  const cometMinRun = 3;
   const cometWarningMs = 760;
-  const cometWarningTestMs = 420;
   const cometTrailLength = 190;
   const cometHitWidth = 16;
 
   let comet = null;
-  let cometCooldown = rand(7.5, 12.5);
+  let cometCooldown = rand(11, 16);
   let cometWarningDelay = 0;
   let cometFlash = 0;
-  let cometTestMode = false;
-  let cometTestButton = null;
 
   function injectOrbitEventStyles() {
     if (document.getElementById("orbit-event-styles")) return;
@@ -19,19 +16,6 @@
     const style = document.createElement("style");
     style.id = "orbit-event-styles";
     style.textContent = `
-      .comet-test-button {
-        color: #ffd8a8;
-        border-color: rgba(255, 165, 75, 0.34);
-        text-shadow: 0 0 10px rgba(255, 142, 55, 0.55);
-      }
-
-      .comet-test-button.active {
-        background: rgba(92, 34, 0, 0.6);
-        border-color: rgba(255, 181, 92, 0.82);
-        box-shadow: 0 0 22px rgba(255, 117, 42, 0.2) inset, 0 0 18px rgba(255, 132, 42, 0.2);
-        color: #fff1d6;
-      }
-
       .instruction.screen-gameover {
         background: radial-gradient(circle at 50% 0%, rgba(255, 75, 42, 0.28), transparent 40%), linear-gradient(135deg, rgba(95, 6, 12, 0.88), rgba(9, 10, 30, 0.84));
         border-color: rgba(255, 93, 76, 0.72);
@@ -63,7 +47,10 @@
   }
 
   function randomCometCooldown() {
-    return cometTestMode ? rand(1.15, 2.1) : rand(7.5, 12.5);
+    if (level <= 3) return rand(11, 16);
+    if (level <= 5) return rand(8.5, 13);
+    if (level <= 7) return rand(6.5, 10);
+    return rand(4.8, 8);
   }
 
   function clearComet(resetTimer = true) {
@@ -72,46 +59,12 @@
     if (resetTimer) cometCooldown = randomCometCooldown();
   }
 
-  function updateCometTestButton() {
-    if (!cometTestButton) return;
-
-    cometTestButton.classList.toggle("active", cometTestMode);
-    cometTestButton.setAttribute("aria-pressed", cometTestMode ? "true" : "false");
-    cometTestButton.setAttribute("aria-label", cometTestMode ? "Comet test mode on" : "Comet test mode off");
-    cometTestButton.title = cometTestMode ? "Comet test mode on" : "Comet test mode off";
-  }
-
-  function ensureCometTestButton() {
-    const controlPanel = document.querySelector(".control-panel");
-    if (!controlPanel || cometTestButton) return;
-
-    cometTestButton = document.createElement("button");
-    cometTestButton.id = "comet-test";
-    cometTestButton.className = "control-button comet-test-button";
-    cometTestButton.type = "button";
-    cometTestButton.textContent = "☄";
-
-    cometTestButton.addEventListener("pointerdown", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      cometTestMode = !cometTestMode;
-      clearComet(false);
-      cometCooldown = cometTestMode ? 0.65 : randomCometCooldown();
-      updateCometTestButton();
-      updateHud(cometTestMode ? "Comet test mode on." : "Comet test mode off.");
-    });
-
-    controlPanel.appendChild(cometTestButton);
-    updateCometTestButton();
-  }
-
   function cometEligible() {
-    return state === "running" && (cometTestMode || level >= cometMinRun);
+    return state === "running" && level >= cometMinRun;
   }
 
   function triggerCometWarning() {
-    cometWarningDelay = (cometTestMode ? cometWarningTestMs : cometWarningMs) / 1000;
+    cometWarningDelay = cometWarningMs / 1000;
     updateHud("COMET DETECTED INBOUND!");
   }
 
@@ -300,7 +253,6 @@
   }
 
   injectOrbitEventStyles();
-  ensureCometTestButton();
 
   if (typeof setOrbitScreen === "function") {
     const originalSetOrbitScreen = setOrbitScreen;
@@ -312,9 +264,9 @@
 
   const originalStartGame = startGame;
   startGame = function startGameWithCometReset() {
+    originalStartGame();
     clearComet();
     instructionEl.classList.remove("screen-gameover");
-    originalStartGame();
   };
 
   crash = function crashWithGameOverCard() {
