@@ -228,6 +228,36 @@ body {
   display: none;
 }
 
+@media (max-width: 720px), (pointer: coarse) {
+  .control-panel,
+  .stats {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: 0 0 12px rgba(83, 213, 255, 0.08) inset;
+  }
+
+  .instruction {
+    text-shadow: none;
+  }
+
+  .instruction.screen-layer,
+  .instruction.screen-special,
+  .instruction.screen-final {
+    box-shadow: 0 0 18px rgba(255, 110, 120, 0.18);
+  }
+
+  .instruction strong,
+  .instruction.screen-layer strong,
+  .instruction.screen-special strong,
+  .instruction.screen-final strong {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.38);
+  }
+
+  .message {
+    box-shadow: none;
+  }
+}
+
 @media (min-width: 720px) {
   .hud-header {
     padding-top: 24px;
