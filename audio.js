@@ -2,11 +2,12 @@
 (() => {
   const soundButton = document.getElementById("sound");
   const storageKey = "orbit-sound-muted";
-  const masterVolume = 0.22;
+  const masterVolume = 0.42;
 
   let audioContext = null;
   let masterGain = null;
   let muted = readMutedSetting();
+  let audioReady = false;
 
   function readMutedSetting() {
     try {
@@ -45,14 +46,22 @@
   }
 
   function unlockAudio() {
-    if (muted) return;
+    if (muted) return Promise.resolve(false);
 
     const context = getAudioContext();
-    if (!context) return;
+    if (!context) return Promise.resolve(false);
 
-    if (context.state === "suspended") {
-      context.resume().catch(() => {});
+    if (context.state === "running") {
+      audioReady = true;
+      return Promise.resolve(true);
     }
+
+    return context.resume()
+      .then(() => {
+        audioReady = context.state === "running";
+        return audioReady;
+      })
+      .catch(() => false);
   }
 
   function withAudio(callback) {
@@ -61,15 +70,23 @@
     const context = getAudioContext();
     if (!context || !masterGain) return;
 
-    if (context.state === "suspended") {
-      context.resume().catch(() => {});
+    if (context.state === "running") {
+      audioReady = true;
+      callback(context);
+      return;
     }
 
-    callback(context);
+    context.resume()
+      .then(() => {
+        if (context.state !== "running") return;
+        audioReady = true;
+        callback(context);
+      })
+      .catch(() => {});
   }
 
   function toneAt(context, start, frequency, endFrequency, duration, volume = 0.1, type = "square") {
-    const safeStart = Math.max(context.currentTime, context.currentTime + start);
+    const safeStart = context.currentTime + Math.max(0, start);
     const safeEnd = safeStart + duration;
     const oscillator = context.createOscillator();
     const gain = context.createGain();
@@ -82,7 +99,7 @@
     }
 
     gain.gain.setValueAtTime(0.0001, safeStart);
-    gain.gain.exponentialRampToValueAtTime(volume, safeStart + 0.012);
+    gain.gain.exponentialRampToValueAtTime(volume, safeStart + 0.01);
     gain.gain.exponentialRampToValueAtTime(0.0001, safeEnd);
 
     oscillator.connect(gain);
@@ -92,7 +109,7 @@
   }
 
   function noiseAt(context, start, duration, volume = 0.08, filterFrequency = 900, filterType = "lowpass") {
-    const safeStart = Math.max(context.currentTime, context.currentTime + start);
+    const safeStart = context.currentTime + Math.max(0, start);
     const bufferSize = Math.max(1, Math.floor(context.sampleRate * duration));
     const buffer = context.createBuffer(1, bufferSize, context.sampleRate);
     const data = buffer.getChannelData(0);
@@ -120,92 +137,99 @@
 
   function moveOut() {
     withAudio((context) => {
-      toneAt(context, 0, 360, 760, 0.075, 0.085, "square");
-      toneAt(context, 0.012, 720, 980, 0.045, 0.035, "triangle");
+      toneAt(context, 0, 360, 760, 0.08, 0.15, "square");
+      toneAt(context, 0.012, 720, 980, 0.055, 0.07, "triangle");
     });
   }
 
   function moveIn() {
     withAudio((context) => {
-      toneAt(context, 0, 320, 180, 0.07, 0.075, "square");
-      toneAt(context, 0.012, 210, 150, 0.055, 0.032, "triangle");
+      toneAt(context, 0, 340, 180, 0.08, 0.14, "square");
+      toneAt(context, 0.012, 230, 150, 0.06, 0.06, "triangle");
     });
   }
 
   function clearRun() {
     withAudio((context) => {
-      toneAt(context, 0, 520, 780, 0.08, 0.075, "square");
-      toneAt(context, 0.075, 780, 1160, 0.12, 0.08, "square");
+      toneAt(context, 0, 520, 780, 0.09, 0.13, "square");
+      toneAt(context, 0.075, 780, 1160, 0.13, 0.13, "square");
     });
   }
 
   function star() {
     withAudio((context) => {
-      toneAt(context, 0, 880, 1320, 0.075, 0.08, "triangle");
-      toneAt(context, 0.052, 1320, 1760, 0.09, 0.06, "triangle");
+      toneAt(context, 0, 880, 1320, 0.08, 0.13, "triangle");
+      toneAt(context, 0.052, 1320, 1760, 0.1, 0.1, "triangle");
     });
   }
 
   function extraLife() {
     withAudio((context) => {
-      toneAt(context, 0, 520, 620, 0.08, 0.08, "triangle");
-      toneAt(context, 0.08, 660, 760, 0.09, 0.09, "triangle");
-      toneAt(context, 0.18, 880, 1120, 0.16, 0.085, "triangle");
+      toneAt(context, 0, 520, 620, 0.08, 0.13, "triangle");
+      toneAt(context, 0.08, 660, 760, 0.09, 0.14, "triangle");
+      toneAt(context, 0.18, 880, 1120, 0.17, 0.13, "triangle");
     });
   }
 
   function crashFx() {
     withAudio((context) => {
-      noiseAt(context, 0, 0.16, 0.075, 720, "lowpass");
-      toneAt(context, 0, 110, 48, 0.18, 0.11, "sawtooth");
+      noiseAt(context, 0, 0.16, 0.14, 720, "lowpass");
+      toneAt(context, 0, 110, 48, 0.2, 0.18, "sawtooth");
     });
   }
 
   function gameOver() {
     withAudio((context) => {
-      toneAt(context, 0, 180, 96, 0.18, 0.09, "square");
-      toneAt(context, 0.16, 120, 62, 0.28, 0.085, "square");
-      noiseAt(context, 0.04, 0.22, 0.045, 420, "lowpass");
+      toneAt(context, 0, 180, 96, 0.18, 0.15, "square");
+      toneAt(context, 0.16, 120, 62, 0.3, 0.13, "square");
+      noiseAt(context, 0.04, 0.24, 0.08, 420, "lowpass");
     });
   }
 
   function cometWarning() {
     withAudio((context) => {
-      toneAt(context, 0, 136, 136, 0.12, 0.1, "square");
-      toneAt(context, 0.18, 136, 176, 0.14, 0.1, "square");
-      noiseAt(context, 0.02, 0.12, 0.025, 360, "bandpass");
+      toneAt(context, 0, 136, 136, 0.13, 0.16, "square");
+      toneAt(context, 0.18, 136, 176, 0.15, 0.16, "square");
+      noiseAt(context, 0.02, 0.12, 0.045, 360, "bandpass");
     });
   }
 
   function cometImpact() {
     withAudio((context) => {
-      noiseAt(context, 0, 0.22, 0.09, 520, "lowpass");
-      toneAt(context, 0, 88, 34, 0.34, 0.14, "sawtooth");
-      toneAt(context, 0.035, 48, 26, 0.42, 0.08, "triangle");
+      noiseAt(context, 0, 0.24, 0.16, 520, "lowpass");
+      toneAt(context, 0, 88, 34, 0.36, 0.2, "sawtooth");
+      toneAt(context, 0.035, 48, 26, 0.44, 0.12, "triangle");
     });
   }
 
   function reward() {
     withAudio((context) => {
-      toneAt(context, 0, 440, 660, 0.1, 0.07, "triangle");
-      toneAt(context, 0.075, 660, 880, 0.12, 0.07, "triangle");
-      toneAt(context, 0.17, 990, 1480, 0.22, 0.055, "sine");
+      toneAt(context, 0, 440, 660, 0.1, 0.12, "triangle");
+      toneAt(context, 0.075, 660, 880, 0.13, 0.12, "triangle");
+      toneAt(context, 0.17, 990, 1480, 0.24, 0.09, "sine");
     });
   }
 
   function warp() {
     withAudio((context) => {
-      toneAt(context, 0, 130, 1480, 1.15, 0.085, "sawtooth");
-      toneAt(context, 0.18, 260, 1960, 0.95, 0.055, "triangle");
-      noiseAt(context, 0.05, 0.95, 0.03, 1500, "bandpass");
-      toneAt(context, 1.04, 880, 1760, 0.18, 0.08, "sine");
+      toneAt(context, 0, 130, 1480, 1.15, 0.13, "sawtooth");
+      toneAt(context, 0.18, 260, 1960, 0.95, 0.095, "triangle");
+      noiseAt(context, 0.05, 0.95, 0.055, 1500, "bandpass");
+      toneAt(context, 1.04, 880, 1760, 0.18, 0.13, "sine");
     });
   }
 
   function start() {
     withAudio((context) => {
-      toneAt(context, 0, 220, 440, 0.08, 0.06, "square");
-      toneAt(context, 0.08, 440, 660, 0.1, 0.065, "square");
+      toneAt(context, 0, 220, 440, 0.09, 0.12, "square");
+      toneAt(context, 0.08, 440, 660, 0.11, 0.12, "square");
+    });
+  }
+
+  function testBeep() {
+    withAudio((context) => {
+      toneAt(context, 0, 660, 880, 0.08, 0.15, "triangle");
+      toneAt(context, 0.07, 990, 1320, 0.09, 0.1, "square");
     });
   }
 
@@ -223,8 +247,9 @@
     updateSoundButton();
 
     if (!muted) {
-      unlockAudio();
-      withAudio((context) => toneAt(context, 0, 660, 880, 0.08, 0.055, "triangle"));
+      unlockAudio().then((ready) => {
+        if (ready) testBeep();
+      });
     }
   }
 
@@ -302,6 +327,18 @@
       }
     };
 
+    if (typeof setOrbitScreen === "function") {
+      const originalSetOrbitScreen = setOrbitScreen;
+      setOrbitScreen = function setOrbitScreenWithSound(title, lines, tone = "normal") {
+        originalSetOrbitScreen(title, lines, tone);
+
+        if (title === "GAME OVER" && Array.isArray(lines) && lines[0] === "Comet impact.") {
+          cometImpact();
+          gameOver();
+        }
+      };
+    }
+
     if (typeof showOrbitRewardScreen === "function") {
       const originalShowOrbitRewardScreen = showOrbitRewardScreen;
       showOrbitRewardScreen = function showOrbitRewardScreenWithSound(card) {
@@ -330,6 +367,8 @@
   wrapGameHooks();
 
   window.orbitAudio = {
+    unlockAudio,
+    testBeep,
     moveOut,
     moveIn,
     clearRun,
