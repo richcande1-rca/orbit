@@ -28,6 +28,7 @@ let state = "waiting";
 let score = 0;
 let lives = 3;
 let level = 1;
+let starsCollected = 0;
 let flash = 0;
 let shake = 0;
 let invulnerable = 0;
@@ -102,6 +103,7 @@ function startGame() {
   score = 0;
   lives = 3;
   level = 1;
+  starsCollected = 0;
   player.angle = -Math.PI / 2;
   player.lane = 0;
   moveCooldown = 0;
@@ -333,8 +335,17 @@ function checkBonusStar() {
 
   const diff = angleDistance(player.angle, bonusStar.angle);
   if (diff < 0.12) {
+    starsCollected += 1;
     score += 3;
     flash = 0.34;
+
+    if (starsCollected % 4 === 0) {
+      lives += 1;
+      placeBonusStar();
+      updateHud("Star bonus +3. Extra life!");
+      return;
+    }
+
     placeBonusStar();
     updateHud("Star bonus +3.");
   }
