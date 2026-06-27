@@ -18,21 +18,23 @@
 
   const titlePages = [
     {
-      kicker: "orbital mechanics",
+      mode: "attract",
+      kicker: "",
       title: "ORBIT",
-      tagline: "Find the window. Ride the gravity. Break orbit.",
-      lines: ["A quiet little arcade problem for nervous thumbs."],
-      button: "CONTINUE",
-      hint: "tap to open flight notes",
+      tagline: "Tap to continue",
+      lines: [],
+      button: "",
+      hint: "shareware space-jazz edition",
     },
     {
+      mode: "notes",
       kicker: "flight notes",
       title: "RUN THE LANES",
       tagline: "Move with the field, not against it.",
       lines: [
         "OUT climbs one orbit. IN falls back toward safety.",
-        "Collect stars for points. Every fourth star adds a life.",
-        "Pink debris costs a life. Comets remove three.",
+        "Stars add points. Every fourth star adds a life.",
+        "Pink debris costs one life. Comets remove three.",
         "Clear twelve runs and punch through the final warp.",
       ],
       button: "ENTER ORBIT",
@@ -45,14 +47,15 @@
 
   function renderTitlePage() {
     const page = titlePages[titlePageIndex];
+    const isAttract = page.mode === "attract";
     card.replaceChildren();
+
+    titleScreen.classList.toggle("title-attract", isAttract);
+    titleScreen.classList.toggle("title-notes", !isAttract);
+    card.className = isAttract ? "title-card title-card-attract" : "title-card title-card-notes";
 
     const orbitDot = document.createElement("div");
     orbitDot.className = "title-orbit-dot";
-
-    const kicker = document.createElement("div");
-    kicker.className = "title-kicker";
-    kicker.textContent = page.kicker;
 
     const title = document.createElement("h1");
     title.className = "title-logo";
@@ -62,24 +65,38 @@
     tagline.className = "title-tagline";
     tagline.textContent = page.tagline;
 
-    const lines = document.createElement("div");
-    lines.className = "title-lines";
-    for (const line of page.lines) {
-      const item = document.createElement("span");
-      item.textContent = line;
-      lines.appendChild(item);
+    card.append(orbitDot, title, tagline);
+
+    if (page.kicker) {
+      const kicker = document.createElement("div");
+      kicker.className = "title-kicker";
+      kicker.textContent = page.kicker;
+      card.prepend(kicker);
     }
 
-    const button = document.createElement("button");
-    button.className = "title-primary";
-    button.type = "button";
-    button.textContent = page.button;
+    if (page.lines.length) {
+      const lines = document.createElement("div");
+      lines.className = "title-lines";
+      for (const line of page.lines) {
+        const item = document.createElement("span");
+        item.textContent = line;
+        lines.appendChild(item);
+      }
+      card.appendChild(lines);
+    }
+
+    if (page.button) {
+      const button = document.createElement("button");
+      button.className = "title-primary";
+      button.type = "button";
+      button.textContent = page.button;
+      card.appendChild(button);
+    }
 
     const hint = document.createElement("div");
     hint.className = "title-hint";
     hint.textContent = page.hint;
-
-    card.append(orbitDot, kicker, title, tagline, lines, button, hint);
+    card.appendChild(hint);
   }
 
   function hideTitleScreen() {
