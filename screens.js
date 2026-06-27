@@ -231,11 +231,11 @@ function showOrbitTrainingScreen() {
   orbitInputUnlockAt = 0;
   orbitLayerHideAt = 0;
   setOrbitScreen("TRAINING ORBIT", [
-    "Tap planet to move outward.",
-    "Tap rings to move inward.",
-    "Dodge pink debris.",
+    "Tap the blue center planet to move outward.",
+    "Tap anywhere else to move inward.",
+    "Dodge pink debris and comets.",
     "Collect 4 stars to add a life!",
-    "Reach the outer orbit.",
+    "Jump outward past the outer ring to clear a run.",
   ]);
   updateHud("");
   updateControlButtons();
