@@ -24,7 +24,7 @@
       tagline: "Tap to continue",
       lines: [],
       button: "",
-      hint: "shareware space-jazz edition",
+      hint: "",
     },
     {
       mode: "notes",
@@ -93,10 +93,12 @@
       card.appendChild(button);
     }
 
-    const hint = document.createElement("div");
-    hint.className = "title-hint";
-    hint.textContent = page.hint;
-    card.appendChild(hint);
+    if (page.hint) {
+      const hint = document.createElement("div");
+      hint.className = "title-hint";
+      hint.textContent = page.hint;
+      card.appendChild(hint);
+    }
   }
 
   function hideTitleScreen() {
