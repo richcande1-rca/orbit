@@ -154,7 +154,7 @@
     });
   }
 
-  function crash() {
+  function crashFx() {
     withAudio((context) => {
       noiseAt(context, 0, 0.16, 0.075, 720, "lowpass");
       toneAt(context, 0, 110, 48, 0.18, 0.11, "sawtooth");
@@ -268,7 +268,7 @@
 
       if (previousState !== "running" || lives >= previousLives) return;
       if (lives <= 0) gameOver();
-      else crashSound();
+      else crashFx();
     };
 
     const originalCheckBonusStar = checkBonusStar;
@@ -319,10 +319,6 @@
     }
   }
 
-  function crashSound() {
-    crash();
-  }
-
   document.addEventListener("pointerdown", unlockAudio, { capture: true });
   window.addEventListener("keydown", unlockAudio, { capture: true });
 
@@ -339,7 +335,7 @@
     clearRun,
     star,
     extraLife,
-    crash: crashSound,
+    crash: crashFx,
     gameOver,
     cometWarning,
     cometImpact,
