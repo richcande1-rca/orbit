@@ -272,3 +272,51 @@
     min-width: 74px;
   }
 }
+
+@media (min-width: 900px) {
+  .title-card-notes {
+    width: min(560px, calc(100vw - 64px));
+    min-height: auto;
+    gap: 12px;
+    padding: 32px 42px 34px;
+  }
+
+  .title-card-notes .title-logo {
+    font-size: clamp(2.45rem, 5.2vw, 3.65rem);
+    letter-spacing: 0.14em;
+    line-height: 1;
+    white-space: nowrap;
+    text-shadow: 0 0 10px rgba(138, 236, 255, 0.62), 0 0 22px rgba(83, 213, 255, 0.18);
+  }
+
+  .title-card-notes .title-kicker {
+    font-size: 0.72rem;
+  }
+
+  .title-card-notes .title-tagline {
+    font-size: 1.08rem;
+  }
+
+  .title-card-notes .title-lines {
+    gap: 8px;
+    font-size: 0.92rem;
+    line-height: 1.32;
+  }
+
+  .title-card-notes .title-primary {
+    min-width: 218px;
+    min-height: 44px;
+    margin-top: 6px;
+    font-size: 0.82rem;
+  }
+
+  .title-card-notes .title-hint {
+    font-size: 0.7rem;
+  }
+
+  .title-card-notes .title-orbit-dot {
+    width: 210px;
+    height: 210px;
+    opacity: 0.28;
+  }
+}
