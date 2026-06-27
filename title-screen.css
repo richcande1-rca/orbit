@@ -197,6 +197,54 @@
   }
 }
 
+.title-screen.title-attract {
+  background: rgba(1, 4, 15, 0.18);
+  box-shadow: inset 0 0 120px rgba(1, 4, 15, 0.64);
+}
+
+.title-screen.title-attract::before {
+  opacity: 0.08;
+  animation-duration: 34s;
+}
+
+.title-card-attract {
+  width: min(760px, calc(100vw - 34px));
+  min-height: min(420px, calc(100vh - 130px));
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.title-card-attract .title-logo {
+  font-size: clamp(4.5rem, 20vw, 9rem);
+  text-shadow: 0 0 14px rgba(138, 236, 255, 0.76), 0 0 34px rgba(83, 213, 255, 0.24);
+}
+
+.title-card-attract .title-tagline {
+  color: rgba(238, 247, 255, 0.82);
+  font-size: clamp(0.9rem, 2.8vw, 1.12rem);
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.title-card-attract .title-orbit-dot {
+  width: min(430px, 80vw);
+  height: min(430px, 80vw);
+  opacity: 0.22;
+  border-color: rgba(132, 225, 255, 0.18);
+}
+
+.title-card-attract .title-orbit-dot::before {
+  transform-origin: 0 calc(min(430px, 80vw) / 2 + 4px);
+}
+
+.title-card-notes {
+  width: min(660px, calc(100vw - 34px));
+  min-height: auto;
+}
+
 @media (max-width: 720px), (pointer: coarse) {
   body.title-screen-active .mobile-controls {
     display: none !important;
@@ -205,6 +253,14 @@
   .title-card {
     min-height: min(540px, calc(100vh - 112px));
     backdrop-filter: none;
+  }
+
+  .title-card-attract {
+    min-height: min(390px, calc(100vh - 120px));
+  }
+
+  .title-card-notes {
+    min-height: min(470px, calc(100vh - 112px));
   }
 
   .title-screen {
