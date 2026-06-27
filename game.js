@@ -10,9 +10,9 @@ const pauseButton = document.getElementById("pause");
 const resetButton = document.getElementById("reset");
 
 const TAU = Math.PI * 2;
-const ringCount = 5;
+let ringCount = 5;
 const moveCooldownSeconds = 0.48;
-const laneSpeedRates = [0.68, 1.08, 0.84, 1.34, 1.58];
+const laneSpeedRates = [0.68, 1.08, 0.84, 1.34, 1.58, 1.76];
 
 let width = 0;
 let height = 0;
@@ -55,6 +55,19 @@ function rand(min, max) {
 function angleDistance(a, b) {
   let diff = Math.abs((a - b) % TAU);
   return diff > Math.PI ? TAU - diff : diff;
+}
+
+function targetRingCountForLevel() {
+  return level >= 6 ? 6 : 5;
+}
+
+function applyRingCountForLevel() {
+  const nextRingCount = targetRingCountForLevel();
+  if (ringCount === nextRingCount) return false;
+
+  ringCount = nextRingCount;
+  resize();
+  return true;
 }
 
 function resize() {
@@ -104,6 +117,8 @@ function startGame() {
   lives = 3;
   level = 1;
   starsCollected = 0;
+  ringCount = targetRingCountForLevel();
+  resize();
   player.angle = -Math.PI / 2;
   player.lane = 0;
   moveCooldown = 0;
@@ -231,9 +246,10 @@ function movePlayer(direction) {
     level += 1;
     player.lane = 0;
     invulnerable = 0.9;
+    const orbitExpanded = applyRingCountForLevel();
     makeHazards();
     placeBonusStar();
-    updateHud(`Level ${level}. Planet out. Rings in.`);
+    updateHud(orbitExpanded ? `Level ${level}. Orbit expanded.` : `Level ${level}. Planet out. Rings in.`);
   } else {
     updateHud(direction > 0 ? "Outward." : "Inward.");
   }
