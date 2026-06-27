@@ -1,15 +1,29 @@
 // Adds the Orbit screen arc without changing the core renderer.
-// Training -> layered run cards -> Run 5 checkpoint -> Run 12 completion.
-const orbitMilestoneRun = 5;
+// Training -> reward run cards -> space warp completion.
 const orbitFinalRun = 12;
 const orbitMoveCooldownSeconds = 0.4;
 const orbitLevelHoldMs = 700;
 const orbitLayerCardMs = 950;
 const orbitSpecialHoldMs = 1350;
+const orbitRewardHoldMs = 520;
 const orbitLowPowerMode = window.matchMedia("(pointer: coarse), (max-width: 720px)").matches;
 const orbitDprCap = orbitLowPowerMode ? 1 : 2;
+const orbitRewardCards = {
+  4: {
+    title: "ORBIT BREACH",
+    lines: ["Run 3 cleared.", "Inner field broken.", "Tap the blue planet to continue."],
+  },
+  7: {
+    title: "DEEP ORBIT",
+    lines: ["Run 6 cleared.", "The system opens wider.", "Tap the blue planet to continue."],
+  },
+  11: {
+    title: "EVENT HORIZON",
+    lines: ["Run 10 cleared.", "Space begins to fold.", "Tap the blue planet to continue."],
+  },
+};
 
-let orbitMilestoneShown = false;
+let orbitRewardSeen = new Set();
 let orbitCompleteShown = false;
 let orbitLastSeenLevel = 1;
 let orbitInputUnlockAt = 0;
@@ -162,11 +176,13 @@ movePlayer = function movePlayerWithBalance(direction) {
 
 function setOrbitScreen(title, lines, tone = "normal") {
   instructionEl.replaceChildren();
-  instructionEl.classList.remove("hidden", "screen-layer", "screen-special", "screen-final");
+  instructionEl.classList.remove("hidden", "screen-layer", "screen-special", "screen-final", "screen-reward", "screen-warp", "screen-gameover");
 
   if (tone === "layer") instructionEl.classList.add("screen-layer");
   if (tone === "special") instructionEl.classList.add("screen-special");
   if (tone === "final") instructionEl.classList.add("screen-final");
+  if (tone === "reward") instructionEl.classList.add("screen-reward");
+  if (tone === "warp") instructionEl.classList.add("screen-warp");
 
   const heading = document.createElement("strong");
   heading.textContent = title;
@@ -225,7 +241,7 @@ function hideOrbitLayerCardIfReady() {
 }
 
 function showOrbitTrainingScreen() {
-  orbitMilestoneShown = false;
+  orbitRewardSeen = new Set();
   orbitCompleteShown = false;
   orbitLastSeenLevel = 1;
   orbitInputUnlockAt = 0;
@@ -241,25 +257,30 @@ function showOrbitTrainingScreen() {
   updateControlButtons();
 }
 
-function showOrbitMilestoneScreen() {
-  orbitMilestoneShown = true;
-  state = "milestone";
+function showOrbitRewardScreen(card) {
+  state = "reward";
   player.lane = 0;
   moveCooldown = 0;
   invulnerable = 0;
-  flash = 0.45;
+  flash = 0.55;
   orbitLayerHideAt = 0;
-  holdOrbitInput(orbitSpecialHoldMs);
+  holdOrbitInput(orbitRewardHoldMs);
 
-  setOrbitScreen("DEEP ORBIT", [
-    "Good. The orbit expands now.",
-    "Tap planet to continue.",
-  ], "special");
+  setOrbitScreen(card.title, card.lines, "reward");
   updateHud("");
   updateControlButtons();
 }
 
-function continueFromOrbitMilestone() {
+function showOrbitRewardForLevel(nextLevel) {
+  const card = orbitRewardCards[nextLevel];
+  if (!card || orbitRewardSeen.has(nextLevel)) return false;
+
+  orbitRewardSeen.add(nextLevel);
+  showOrbitRewardScreen(card);
+  return true;
+}
+
+function continueFromOrbitReward() {
   state = "running";
   player.lane = 0;
   moveCooldown = 0;
@@ -275,22 +296,25 @@ function showOrbitCompleteScreen() {
   player.lane = ringCount - 1;
   moveCooldown = 0;
   invulnerable = 0;
-  flash = 0.9;
+  flash = 1.1;
   orbitLayerHideAt = 0;
   holdOrbitInput(orbitSpecialHoldMs);
 
-  setOrbitScreen("APOGEE REACHED", [
-    "You escaped the orbit.",
+  setOrbitScreen("SPACE WARP", [
+    "Run 12 cleared.",
+    "You broke orbit.",
+    "The debris field collapses behind you.",
+    "The stars stretch into light.",
     `Final score: ${score}`,
-    "Tap planet to restart.",
-  ], "final");
+    "Tap the blue planet to restart.",
+  ], "warp");
   updateHud("");
   updateControlButtons();
 }
 
 function watchOrbitProgress() {
   if (state === "running" && level === 1 && score === 0) {
-    orbitMilestoneShown = false;
+    orbitRewardSeen = new Set();
     orbitCompleteShown = false;
     orbitLastSeenLevel = 1;
     orbitInputUnlockAt = 0;
@@ -304,8 +328,8 @@ function watchOrbitProgress() {
     if (advanced) {
       if (!orbitCompleteShown && level > orbitFinalRun) {
         showOrbitCompleteScreen();
-      } else if (!orbitMilestoneShown && level > orbitMilestoneRun) {
-        showOrbitMilestoneScreen();
+      } else if (showOrbitRewardForLevel(level)) {
+        // Fullscreen reward card is now waiting for the player.
       } else {
         showOrbitLayerCard(level);
       }
@@ -314,8 +338,8 @@ function watchOrbitProgress() {
 
   if (state === "running" && !orbitCompleteShown && level > orbitFinalRun) {
     showOrbitCompleteScreen();
-  } else if (state === "running" && !orbitMilestoneShown && level > orbitMilestoneRun) {
-    showOrbitMilestoneScreen();
+  } else if (state === "running") {
+    showOrbitRewardForLevel(level);
   }
 
   hideOrbitLayerCardIfReady();
@@ -325,22 +349,22 @@ function watchOrbitProgress() {
 canvas.addEventListener(
   "pointerdown",
   (event) => {
-    if ((state === "running" || state === "milestone" || state === "complete") && orbitInputLocked()) {
+    if ((state === "running" || state === "reward" || state === "complete") && orbitInputLocked()) {
       stopOrbitInput(event);
       return;
     }
 
-    if (state !== "milestone" && state !== "complete") return;
+    if (state !== "reward" && state !== "complete") return;
 
     stopOrbitInput(event);
 
     if (!tappedPlanet(event)) {
-      updateHud(state === "milestone" ? "Tap planet to continue." : "Tap planet to restart.");
+      updateHud(state === "reward" ? "Tap the blue planet to continue." : "Tap the blue planet to restart.");
       return;
     }
 
-    if (state === "milestone") {
-      continueFromOrbitMilestone();
+    if (state === "reward") {
+      continueFromOrbitReward();
       return;
     }
 
@@ -353,16 +377,16 @@ window.addEventListener(
   "keydown",
   (event) => {
     if (event.code !== "Space" && event.code !== "Enter") return;
-    if (state !== "running" && state !== "milestone" && state !== "complete") return;
+    if (state !== "running" && state !== "reward" && state !== "complete") return;
 
     if (orbitInputLocked()) {
       stopOrbitInput(event);
       return;
     }
 
-    if (state === "milestone") {
+    if (state === "reward") {
       stopOrbitInput(event);
-      continueFromOrbitMilestone();
+      continueFromOrbitReward();
       return;
     }
 
