@@ -249,9 +249,10 @@ function showOrbitTrainingScreen() {
   setOrbitScreen("TRAINING ORBIT", [
     "Tap the blue center planet to move outward.",
     "Tap anywhere else to move inward.",
-    "Dodge pink debris and comets.",
+    "Dodge pink debris and collect stars.",
     "Collect 4 stars to add a life!",
     "Jump outward past the outer ring to clear a run.",
+    "CAREFUL! Comet strikes remove 3 lives!",
   ]);
   updateHud("");
   updateControlButtons();
