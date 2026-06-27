@@ -1,0 +1,67 @@
+.mobile-controls {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  z-index: 12;
+  padding: 0 clamp(14px, 5vw, 30px);
+  pointer-events: none;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-move-button {
+  width: clamp(96px, 28vw, 124px);
+  height: clamp(56px, 10vh, 66px);
+  border: 1px solid rgba(151, 235, 255, 0.32);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(5, 16, 38, 0.68), rgba(24, 14, 66, 0.58));
+  color: #f2fbff;
+  box-shadow: 0 0 24px rgba(83, 213, 255, 0.14) inset, 0 0 22px rgba(83, 213, 255, 0.1);
+  font: inherit;
+  font-size: clamp(1rem, 4vw, 1.25rem);
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-align: center;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mobile-move-button:disabled {
+  opacity: 0.34;
+}
+
+.mobile-move-button:not(:disabled):active {
+  transform: scale(0.96);
+  box-shadow: 0 0 28px rgba(133, 231, 255, 0.22) inset, 0 0 26px rgba(133, 231, 255, 0.18);
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  body.mobile-controls-active .mobile-controls {
+    display: flex;
+    pointer-events: auto;
+  }
+
+  body.mobile-controls-active .message {
+    bottom: max(92px, calc(env(safe-area-inset-bottom) + 84px));
+  }
+}
+
+@media (max-height: 620px) and (pointer: coarse) {
+  .mobile-controls {
+    bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .mobile-move-button {
+    width: clamp(88px, 27vw, 112px);
+    height: 52px;
+    font-size: 0.95rem;
+  }
+
+  body.mobile-controls-active .message {
+    bottom: max(74px, calc(env(safe-area-inset-bottom) + 66px));
+  }
+}
