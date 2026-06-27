@@ -251,6 +251,13 @@ body.title-screen-active .message {
   min-height: auto;
 }
 
+.title-card-notes .title-logo {
+  font-size: clamp(2rem, 9vw, 3.1rem);
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-shadow: 0 0 9px rgba(138, 236, 255, 0.56), 0 0 18px rgba(83, 213, 255, 0.14);
+}
+
 @media (max-width: 720px), (pointer: coarse) {
   body.title-screen-active .mobile-controls {
     display: none !important;
@@ -281,18 +288,18 @@ body.title-screen-active .message {
 
 @media (min-width: 900px) {
   .title-card-notes {
-    width: min(560px, calc(100vw - 64px));
+    width: min(500px, calc(100vw - 64px));
     min-height: auto;
     gap: 12px;
-    padding: 32px 42px 34px;
+    padding: 30px 38px 32px;
   }
 
   .title-card-notes .title-logo {
-    font-size: clamp(2.45rem, 5.2vw, 3.65rem);
-    letter-spacing: 0.14em;
+    font-size: clamp(1.85rem, 3.6vw, 2.6rem);
+    letter-spacing: 0.12em;
     line-height: 1;
     white-space: nowrap;
-    text-shadow: 0 0 10px rgba(138, 236, 255, 0.62), 0 0 22px rgba(83, 213, 255, 0.18);
+    text-shadow: 0 0 8px rgba(138, 236, 255, 0.5), 0 0 16px rgba(83, 213, 255, 0.12);
   }
 
   .title-card-notes .title-kicker {
@@ -304,15 +311,15 @@ body.title-screen-active .message {
   }
 
   .title-card-notes .title-lines {
-    gap: 8px;
-    font-size: 0.92rem;
-    line-height: 1.32;
+    gap: 7px;
+    font-size: 0.94rem;
+    line-height: 1.3;
   }
 
   .title-card-notes .title-primary {
-    min-width: 218px;
-    min-height: 44px;
-    margin-top: 6px;
+    min-width: 210px;
+    min-height: 42px;
+    margin-top: 8px;
     font-size: 0.82rem;
   }
 
@@ -321,8 +328,8 @@ body.title-screen-active .message {
   }
 
   .title-card-notes .title-orbit-dot {
-    width: 210px;
-    height: 210px;
-    opacity: 0.28;
+    width: 190px;
+    height: 190px;
+    opacity: 0.22;
   }
 }
