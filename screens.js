@@ -7,7 +7,7 @@ const orbitLevelHoldMs = 700;
 const orbitLayerCardMs = 950;
 const orbitSpecialHoldMs = 1350;
 const orbitLowPowerMode = window.matchMedia("(pointer: coarse), (max-width: 720px)").matches;
-const orbitDprCap = orbitLowPowerMode ? 1.25 : 2;
+const orbitDprCap = orbitLowPowerMode ? 1 : 2;
 
 let orbitMilestoneShown = false;
 let orbitCompleteShown = false;
@@ -33,26 +33,26 @@ function stopOrbitInput(event) {
 }
 
 makeBackground = function makeBackgroundPerformance() {
-  const starDensity = orbitLowPowerMode ? 7600 : 4300;
-  const minStars = orbitLowPowerMode ? 55 : 85;
-  const maxStars = orbitLowPowerMode ? 130 : 260;
+  const starDensity = orbitLowPowerMode ? 9800 : 4300;
+  const minStars = orbitLowPowerMode ? 35 : 85;
+  const maxStars = orbitLowPowerMode ? 80 : 260;
   const starCount = Math.floor(clamp((width * height) / starDensity, minStars, maxStars));
 
   bgStars = Array.from({ length: starCount }, () => ({
     x: Math.random() * width,
     y: Math.random() * height,
-    r: rand(0.45, orbitLowPowerMode ? 1.45 : 1.85),
+    r: rand(0.45, orbitLowPowerMode ? 1.2 : 1.85),
     twinkle: rand(0, TAU),
     speed: rand(0.25, 1.2),
   }));
 
-  const dustCount = orbitLowPowerMode ? 10 : 26;
+  const dustCount = orbitLowPowerMode ? 4 : 26;
   dust = Array.from({ length: dustCount }, () => ({
     x: Math.random() * width,
     y: Math.random() * height,
-    r: rand(24, orbitLowPowerMode ? 66 : 90),
+    r: rand(24, orbitLowPowerMode ? 54 : 90),
     drift: rand(-0.06, 0.06),
-    alpha: rand(0.018, orbitLowPowerMode ? 0.04 : 0.055),
+    alpha: rand(0.018, orbitLowPowerMode ? 0.026 : 0.055),
   }));
 };
 
@@ -76,6 +76,33 @@ resize = function resizeOrbitPerformance() {
   planetRadius = Math.max(34, inner * 0.52);
 
   makeBackground();
+};
+
+const orbitOriginalDrawNebula = drawNebula;
+drawNebula = function drawNebulaPerformance() {
+  if (orbitLowPowerMode) return;
+  orbitOriginalDrawNebula();
+};
+
+const orbitOriginalDrawOrbitGlow = drawOrbitGlow;
+drawOrbitGlow = function drawOrbitGlowPerformance() {
+  if (!orbitLowPowerMode) {
+    orbitOriginalDrawOrbitGlow();
+    return;
+  }
+
+  ctx.save();
+
+  rings.forEach((radius, lane) => {
+    const active = lane === player.lane;
+    ctx.lineWidth = active ? 2.4 : 1.1;
+    ctx.strokeStyle = active ? "rgba(141, 236, 255, 0.72)" : "rgba(125, 195, 255, 0.18)";
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, TAU);
+    ctx.stroke();
+  });
+
+  ctx.restore();
 };
 
 makeHazards = function makeHazardsWithSafeInnerRing() {
