@@ -16,6 +16,12 @@
   overflow: hidden;
 }
 
+body.title-screen-active .instruction,
+body.title-screen-active .message {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .title-screen.hidden {
   display: none;
 }
@@ -217,8 +223,8 @@
 }
 
 .title-card-attract .title-logo {
-  font-size: clamp(4.5rem, 20vw, 9rem);
-  text-shadow: 0 0 14px rgba(138, 236, 255, 0.76), 0 0 34px rgba(83, 213, 255, 0.24);
+  font-size: clamp(3rem, 13vw, 6.2rem);
+  text-shadow: 0 0 12px rgba(138, 236, 255, 0.68), 0 0 28px rgba(83, 213, 255, 0.2);
 }
 
 .title-card-attract .title-tagline {
