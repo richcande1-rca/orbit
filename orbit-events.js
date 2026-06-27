@@ -6,7 +6,7 @@
   const cometHitWidth = 16;
 
   let comet = null;
-  let cometCooldown = rand(11, 16);
+  let cometCooldown = rand(4.5, 7);
   let cometWarningDelay = 0;
   let cometFlash = 0;
 
@@ -47,9 +47,9 @@
   }
 
   function randomCometCooldown() {
-    if (level <= 3) return rand(11, 16);
-    if (level <= 5) return rand(8.5, 13);
-    if (level <= 7) return rand(6.5, 10);
+    if (level <= 3) return rand(4.5, 7);
+    if (level <= 5) return rand(7, 10.5);
+    if (level <= 7) return rand(6, 9);
     return rand(4.8, 8);
   }
 
