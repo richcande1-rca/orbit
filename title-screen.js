@@ -28,17 +28,20 @@
     },
     {
       mode: "notes",
-      kicker: "flight notes",
-      title: "RUN THE LANES",
-      tagline: "Move with the field, not against it.",
+      kicker: "",
+      title: "INSTRUCTIONS",
+      tagline: "",
       lines: [
-        "OUT climbs one orbit. IN falls back toward safety.",
-        "Stars add points. Every fourth star adds a life.",
-        "Pink debris costs one life. Comets remove three.",
-        "Clear twelve runs and punch through the final warp.",
+        "OUT: move outward",
+        "IN: move inward",
+        "Stars: +3 points",
+        "Every 4 stars: +1 life",
+        "Debris: -1 life",
+        "Comets: -3 lives",
+        "Clear 12 runs.",
       ],
       button: "ENTER ORBIT",
-      hint: "tap to begin the run",
+      hint: "",
     },
   ];
 
@@ -61,11 +64,14 @@
     title.className = "title-logo";
     title.textContent = page.title;
 
-    const tagline = document.createElement("p");
-    tagline.className = "title-tagline";
-    tagline.textContent = page.tagline;
+    card.append(orbitDot, title);
 
-    card.append(orbitDot, title, tagline);
+    if (page.tagline) {
+      const tagline = document.createElement("p");
+      tagline.className = "title-tagline";
+      tagline.textContent = page.tagline;
+      card.appendChild(tagline);
+    }
 
     if (page.kicker) {
       const kicker = document.createElement("div");
