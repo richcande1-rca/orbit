@@ -1,7 +1,7 @@
 // Adds the Orbit screen arc without changing the core renderer.
-// Training -> layered run cards -> Run 5 checkpoint -> Run 10 completion.
+// Training -> layered run cards -> Run 5 checkpoint -> Run 12 completion.
 const orbitMilestoneRun = 5;
-const orbitFinalRun = 10;
+const orbitFinalRun = 12;
 const orbitMoveCooldownSeconds = 0.4;
 const orbitLevelHoldMs = 700;
 const orbitLayerCardMs = 950;
@@ -143,9 +143,10 @@ movePlayer = function movePlayerWithBalance(direction) {
     level += 1;
     player.lane = 0;
     invulnerable = 0.9;
+    const orbitExpanded = typeof applyRingCountForLevel === "function" && applyRingCountForLevel();
     makeHazards();
     placeBonusStar();
-    updateHud(`Level ${level}. Planet out. Rings in.`);
+    updateHud(orbitExpanded ? `Level ${level}. Orbit expanded.` : `Level ${level}. Planet out. Rings in.`);
   } else {
     updateHud(direction > 0 ? "Outward." : "Inward.");
   }
@@ -242,7 +243,7 @@ function showOrbitMilestoneScreen() {
   holdOrbitInput(orbitSpecialHoldMs);
 
   setOrbitScreen("DEEP ORBIT", [
-    "Good. Now it gets faster.",
+    "Good. The orbit expands now.",
     "Tap planet to continue.",
   ], "special");
   updateHud("");
