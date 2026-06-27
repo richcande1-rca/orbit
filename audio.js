@@ -148,6 +148,14 @@
     oscillator.stop(safeEnd + 0.04);
   }
 
+  function chordAt(context, start, frequencies, duration, volume = 0.055, filterFrequency = 2600, echoAmount = 0.22) {
+    const voiceVolume = volume / Math.max(1, frequencies.length * 0.72);
+
+    frequencies.forEach((frequency, index) => {
+      toneAt(context, start + index * 0.008, frequency, frequency * 1.006, duration, voiceVolume, "sine", filterFrequency, echoAmount);
+    });
+  }
+
   function noiseAt(context, start, duration, volume = 0.06, filterFrequency = 900, filterType = "lowpass", echoAmount = 0.04) {
     const safeStart = context.currentTime + Math.max(0, start);
     const bufferSize = Math.max(1, Math.floor(context.sampleRate * duration));
@@ -268,6 +276,18 @@
       toneAt(context, 0, 260, 440, 0.12, 0.08, "triangle", 1900, 0.14);
       toneAt(context, 0.1, 440, 660, 0.14, 0.08, "sine", 2300, 0.18);
       noiseAt(context, 0.02, 0.16, 0.016, 2200, "bandpass", 0.14);
+    });
+  }
+
+  function titleAnthem() {
+    withAudio((context) => {
+      chordAt(context, 0, [220, 277.18, 329.63, 415.3], 0.28, 0.085, 2500, 0.28);
+      toneAt(context, 0.02, 554.37, 659.25, 0.16, 0.045, "triangle", 2800, 0.22);
+      chordAt(context, 0.28, [246.94, 293.66, 369.99, 493.88], 0.3, 0.082, 2700, 0.3);
+      toneAt(context, 0.32, 739.99, 622.25, 0.18, 0.04, "sine", 3000, 0.24);
+      chordAt(context, 0.58, [196, 246.94, 311.13, 392], 0.42, 0.095, 2600, 0.34);
+      toneAt(context, 0.66, 493.88, 987.77, 0.36, 0.05, "sine", 3600, 0.32);
+      noiseAt(context, 0.08, 0.42, 0.014, 2400, "bandpass", 0.2);
     });
   }
 
@@ -426,5 +446,6 @@
     reward,
     warp,
     start,
+    titleAnthem,
   };
 })();
