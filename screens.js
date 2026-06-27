@@ -141,12 +141,20 @@ movePlayer = function movePlayerWithBalance(direction) {
   if (player.lane >= ringCount) {
     score += 1;
     level += 1;
+    levelStarsCollected = 0;
     player.lane = 0;
     invulnerable = 0.9;
-    const orbitExpanded = typeof applyRingCountForLevel === "function" && applyRingCountForLevel();
+    const orbitChange = typeof applyRingCountForLevel === "function" && applyRingCountForLevel();
     makeHazards();
     placeBonusStar();
-    updateHud(orbitExpanded ? `Level ${level}. Orbit expanded.` : `Level ${level}. Planet out. Rings in.`);
+
+    if (orbitChange === "expanded") {
+      updateHud(`Level ${level}. Orbit expanded.`);
+    } else if (orbitChange === "stabilized") {
+      updateHud(`Level ${level}. Orbit stabilized.`);
+    } else {
+      updateHud(`Level ${level}. Planet out. Rings in.`);
+    }
   } else {
     updateHud(direction > 0 ? "Outward." : "Inward.");
   }
@@ -226,6 +234,7 @@ function showOrbitTrainingScreen() {
     "Tap planet to move outward.",
     "Tap rings to move inward.",
     "Dodge pink debris.",
+    "Collect 4 stars to add a life!",
     "Reach the outer orbit.",
   ]);
   updateHud("");
