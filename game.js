@@ -58,16 +58,17 @@ function angleDistance(a, b) {
 }
 
 function targetRingCountForLevel() {
-  return level >= 6 ? 6 : 5;
+  return level === 11 || level === 12 ? 6 : 5;
 }
 
 function applyRingCountForLevel() {
   const nextRingCount = targetRingCountForLevel();
-  if (ringCount === nextRingCount) return false;
+  if (ringCount === nextRingCount) return "";
 
+  const previousRingCount = ringCount;
   ringCount = nextRingCount;
   resize();
-  return true;
+  return nextRingCount > previousRingCount ? "expanded" : "stabilized";
 }
 
 function resize() {
@@ -246,10 +247,17 @@ function movePlayer(direction) {
     level += 1;
     player.lane = 0;
     invulnerable = 0.9;
-    const orbitExpanded = applyRingCountForLevel();
+    const orbitChange = applyRingCountForLevel();
     makeHazards();
     placeBonusStar();
-    updateHud(orbitExpanded ? `Level ${level}. Orbit expanded.` : `Level ${level}. Planet out. Rings in.`);
+
+    if (orbitChange === "expanded") {
+      updateHud(`Level ${level}. Orbit expanded.`);
+    } else if (orbitChange === "stabilized") {
+      updateHud(`Level ${level}. Orbit stabilized.`);
+    } else {
+      updateHud(`Level ${level}. Planet out. Rings in.`);
+    }
   } else {
     updateHud(direction > 0 ? "Outward." : "Inward.");
   }
