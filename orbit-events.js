@@ -151,10 +151,22 @@
   }
 
   function endRunByComet() {
+    lives = Math.max(0, lives - 3);
     shake = 0.72;
     flash = 0.8;
     cometFlash = 0.72;
-    showGameOverCard("Comet impact.");
+    clearComet();
+
+    if (lives <= 0) {
+      showGameOverCard("Comet impact.");
+      return;
+    }
+
+    player.lane = 0;
+    moveCooldown = typeof orbitMoveCooldownSeconds === "number" ? orbitMoveCooldownSeconds : moveCooldownSeconds;
+    invulnerable = 1.4;
+    updateHud("Comet impact. -3 lives.");
+    updateControlButtons();
   }
 
   function updateCometSystem(dt) {
