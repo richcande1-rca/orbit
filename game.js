@@ -29,6 +29,7 @@ let score = 0;
 let lives = 3;
 let level = 1;
 let starsCollected = 0;
+let levelStarsCollected = 0;
 let flash = 0;
 let shake = 0;
 let invulnerable = 0;
@@ -59,6 +60,10 @@ function angleDistance(a, b) {
 
 function targetRingCountForLevel() {
   return level === 11 || level === 12 ? 6 : 5;
+}
+
+function starLimitForLevel() {
+  return level <= 2 ? 4 : Infinity;
 }
 
 function applyRingCountForLevel() {
@@ -118,6 +123,7 @@ function startGame() {
   lives = 3;
   level = 1;
   starsCollected = 0;
+  levelStarsCollected = 0;
   ringCount = targetRingCountForLevel();
   resize();
   player.angle = -Math.PI / 2;
@@ -245,6 +251,7 @@ function movePlayer(direction) {
   if (player.lane >= ringCount) {
     score += 1;
     level += 1;
+    levelStarsCollected = 0;
     player.lane = 0;
     invulnerable = 0.9;
     const orbitChange = applyRingCountForLevel();
@@ -360,18 +367,25 @@ function checkBonusStar() {
   const diff = angleDistance(player.angle, bonusStar.angle);
   if (diff < 0.12) {
     starsCollected += 1;
+    levelStarsCollected += 1;
     score += 3;
     flash = 0.34;
 
-    if (starsCollected % 4 === 0) {
+    const starLimitReached = levelStarsCollected >= starLimitForLevel();
+    const extraLifeEarned = starsCollected % 4 === 0;
+
+    if (extraLifeEarned) {
       lives += 1;
-      placeBonusStar();
-      updateHud("Star bonus +3. Extra life!");
+    }
+
+    if (starLimitReached) {
+      bonusStar = null;
+      updateHud(extraLifeEarned ? "Star bonus +3. Extra life! Climb outward." : "Star bonus +3. Climb outward.");
       return;
     }
 
     placeBonusStar();
-    updateHud("Star bonus +3.");
+    updateHud(extraLifeEarned ? "Star bonus +3. Extra life!" : "Star bonus +3.");
   }
 }
 
