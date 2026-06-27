@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Orbit</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="mobile-controls.css" />
 </head>
 <body>
   <canvas id="game" aria-label="Orbit game canvas"></canvas>
@@ -34,11 +35,17 @@
     <span>Reach the outer orbit.</span>
   </div>
 
+  <div class="mobile-controls" id="mobileControls" aria-label="Mobile movement controls" aria-hidden="true">
+    <button id="mobile-in" class="mobile-move-button mobile-in-button" type="button" aria-label="Move inward" disabled>IN</button>
+    <button id="mobile-out" class="mobile-move-button mobile-out-button" type="button" aria-label="Move outward" disabled>OUT</button>
+  </div>
+
   <div id="message" class="message"></div>
 
   <script src="game.js"></script>
   <script src="planet.js"></script>
   <script src="screens.js"></script>
   <script src="orbit-events.js"></script>
+  <script src="mobile-controls.js"></script>
 </body>
 </html>
