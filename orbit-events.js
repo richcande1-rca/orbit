@@ -5,6 +5,7 @@
   const cometTrailLength = 190;
   const cometHitWidth = 16;
   const cometStrikeDamage = 3;
+  const cometKnockbackRings = 2;
 
   let comet = null;
   let cometCooldown = rand(4.5, 7);
@@ -163,10 +164,11 @@
       return;
     }
 
-    player.lane = 0;
+    const previousLane = player.lane;
+    player.lane = Math.max(0, player.lane - cometKnockbackRings);
     moveCooldown = typeof orbitMoveCooldownSeconds === "number" ? orbitMoveCooldownSeconds : moveCooldownSeconds;
     invulnerable = 1.4;
-    updateHud(`Comet impact. -${cometStrikeDamage} lives.`);
+    updateHud(previousLane > player.lane ? `Comet impact. -${cometStrikeDamage} lives. Knocked inward hard.` : `Comet impact. -${cometStrikeDamage} lives. Hold the inner orbit.`);
     updateControlButtons();
   }
 
