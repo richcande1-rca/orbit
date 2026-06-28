@@ -303,7 +303,8 @@
     lives -= 1;
     shake = 0.42;
     flash = 0.55;
-    player.lane = 0;
+    const previousLane = player.lane;
+    player.lane = Math.max(0, player.lane - 1);
     player.angle -= 0.2;
     moveCooldown = typeof orbitMoveCooldownSeconds === "number" ? orbitMoveCooldownSeconds : moveCooldownSeconds;
     invulnerable = 1.1;
@@ -311,7 +312,7 @@
     if (lives <= 0) {
       showGameOverCard("Nova lost.");
     } else {
-      updateHud("Crash. Back to the inner ring.");
+      updateHud(previousLane > player.lane ? "Crash. Knocked inward one ring." : "Crash. Hold the inner orbit.");
     }
   };
 
