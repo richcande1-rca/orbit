@@ -13,6 +13,15 @@
   card.setAttribute("role", "button");
   card.setAttribute("tabindex", "0");
 
+  const hudHeader = document.querySelector(".hud-header");
+  const moveControls = document.getElementById("mobileControls");
+
+  function setGameChromeVisible(visible) {
+    const value = visible ? "" : "hidden";
+    if (hudHeader) hudHeader.style.visibility = value;
+    if (moveControls) moveControls.style.visibility = value;
+  }
+
   titleScreen.append(skipButton, card);
   document.body.appendChild(titleScreen);
 
@@ -111,6 +120,7 @@
     titleOpen = false;
     titleScreen.classList.add("hidden");
     document.body.classList.remove("title-screen-active");
+    setGameChromeVisible(true);
   }
 
   function skipTitle(event) {
@@ -174,6 +184,7 @@
   window.addEventListener("keydown", handleTitleKey, { capture: true });
 
   document.body.classList.add("title-screen-active");
+  setGameChromeVisible(false);
   renderTitlePage();
   updateControlButtons();
 })();
