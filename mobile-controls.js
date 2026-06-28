@@ -5,23 +5,23 @@
 
   if (!mobileControls || !mobileInButton || !mobileOutButton) return;
 
-  const mobileControlsQuery = window.matchMedia("(pointer: coarse), (max-width: 720px)");
+  const compactControlsQuery = window.matchMedia("(pointer: coarse), (max-width: 720px)");
 
-  function mobileControlsEnabled() {
-    return mobileControlsQuery.matches && (state === "waiting" || state === "running" || state === "paused");
+  function moveControlsEnabled() {
+    return state === "waiting" || state === "running" || state === "paused";
   }
 
   function updateMobileControls() {
-    const controlsVisible = mobileControlsEnabled();
+    const controlsVisible = moveControlsEnabled();
     document.body.classList.toggle("mobile-controls-active", controlsVisible);
     mobileControls.setAttribute("aria-hidden", controlsVisible ? "false" : "true");
 
-    mobileInButton.disabled = !(mobileControlsQuery.matches && (state === "running" || state === "paused"));
-    mobileOutButton.disabled = !(mobileControlsQuery.matches && (state === "waiting" || state === "running" || state === "paused"));
+    mobileInButton.disabled = !(state === "running" || state === "paused");
+    mobileOutButton.disabled = !(state === "waiting" || state === "running" || state === "paused");
   }
 
   function setMobileTrainingText() {
-    if (!mobileControlsQuery.matches || state !== "waiting") return;
+    if (!compactControlsQuery.matches || state !== "waiting") return;
     if (!instructionEl || instructionEl.classList.contains("hidden")) return;
 
     setOrbitScreen("TRAINING ORBIT", [
@@ -34,11 +34,9 @@
     ]);
   }
 
-  function handleMobileControl(event, direction) {
+  function handleMoveControl(event, direction) {
     event.preventDefault();
     event.stopPropagation();
-
-    if (!mobileControlsQuery.matches) return;
 
     if (state === "paused") {
       togglePause();
@@ -66,16 +64,16 @@
   }
 
   const originalUpdateControlButtons = updateControlButtons;
-  updateControlButtons = function updateControlButtonsWithMobile() {
+  updateControlButtons = function updateControlButtonsWithMoveButtons() {
     originalUpdateControlButtons();
     updateMobileControls();
   };
 
-  mobileInButton.addEventListener("pointerdown", (event) => handleMobileControl(event, -1), { passive: false });
-  mobileOutButton.addEventListener("pointerdown", (event) => handleMobileControl(event, 1), { passive: false });
+  mobileInButton.addEventListener("pointerdown", (event) => handleMoveControl(event, -1), { passive: false });
+  mobileOutButton.addEventListener("pointerdown", (event) => handleMoveControl(event, 1), { passive: false });
 
-  if (typeof mobileControlsQuery.addEventListener === "function") {
-    mobileControlsQuery.addEventListener("change", () => {
+  if (typeof compactControlsQuery.addEventListener === "function") {
+    compactControlsQuery.addEventListener("change", () => {
       setMobileTrainingText();
       updateMobileControls();
     });
