@@ -2,17 +2,14 @@
 (function orbitEventLayer() {
   const cometMinRun = 3;
   const cometWarningMs = 1180;
-  const cometOmenWarningMs = 1650;
   const cometTrailLength = 190;
   const cometHitWidth = 16;
   const cometStrikeDamage = 3;
 
   let comet = null;
-  let cometOmenSeen = false;
   let cometCooldown = rand(4.5, 7);
   let cometWarningDelay = 0;
   let cometFlash = 0;
-  let cometFlashTone = "impact";
 
   function injectOrbitEventStyles() {
     if (document.getElementById("orbit-event-styles")) return;
@@ -51,8 +48,7 @@
   }
 
   function randomCometCooldown() {
-    if (!cometOmenSeen && level <= 3) return rand(2.4, 3.8);
-    if (level <= 3) return rand(6.5, 9.5);
+    if (level <= 3) return rand(4.5, 7);
     if (level <= 5) return rand(7, 10.5);
     if (level <= 7) return rand(6, 9);
     return rand(4.8, 8);
@@ -69,13 +65,11 @@
   }
 
   function triggerCometWarning() {
-    const omen = !cometOmenSeen;
-    cometWarningDelay = (omen ? cometOmenWarningMs : cometWarningMs) / 1000;
-    updateHud(omen ? "COMET OMEN: watch the strike line!" : "COMET DETECTED INBOUND!");
+    cometWarningDelay = cometWarningMs / 1000;
+    updateHud("COMET DETECTED INBOUND!");
   }
 
   function spawnComet() {
-    const omen = !cometOmenSeen;
     const angle = rand(0, TAU);
     const dx = Math.cos(angle);
     const dy = Math.sin(angle);
@@ -85,7 +79,7 @@
     const baseX = centerX + nx * offset;
     const baseY = centerY + ny * offset;
     const distance = Math.hypot(width, height) * 0.72 + cometTrailLength;
-    const speed = omen ? rand(360, 470) : rand(680, 900);
+    const speed = rand(680, 900);
 
     comet = {
       x: baseX - dx * distance,
@@ -98,7 +92,6 @@
       dy,
       age: 0,
       life: (distance * 2) / speed,
-      omen,
     };
 
     cometWarningDelay = 0;
@@ -158,27 +151,11 @@
     updateControlButtons();
   }
 
-  function completeOmenComet(message = "Comet passed. Next ones hit hard.") {
-    cometOmenSeen = true;
-    shake = Math.max(shake, 0.12);
-    flash = Math.max(flash, 0.28);
-    cometFlash = 0.32;
-    cometFlashTone = "omen";
-    clearComet();
-    updateHud(message);
-  }
-
   function endRunByComet() {
-    if (comet?.omen) {
-      completeOmenComet("Comet grazed Nova. Warning only.");
-      return;
-    }
-
     lives = Math.max(0, lives - cometStrikeDamage);
     shake = 0.72;
     flash = 0.8;
     cometFlash = 0.72;
-    cometFlashTone = "impact";
     clearComet();
 
     if (lives <= 0) {
@@ -225,11 +202,7 @@
       }
 
       if (comet.age > comet.life) {
-        if (comet.omen) {
-          completeOmenComet();
-        } else {
-          clearComet();
-        }
+        clearComet();
       }
 
       return;
@@ -252,7 +225,6 @@
   function drawComet() {
     if (!comet) return;
 
-    const omen = Boolean(comet.omen);
     const tailX = comet.x - comet.dx * cometTrailLength;
     const tailY = comet.y - comet.dy * cometTrailLength;
 
@@ -261,29 +233,23 @@
     ctx.lineCap = "round";
 
     const streak = ctx.createLinearGradient(tailX, tailY, comet.x, comet.y);
-    if (omen) {
-      streak.addColorStop(0, "rgba(255, 229, 145, 0)");
-      streak.addColorStop(0.52, "rgba(255, 232, 145, 0.56)");
-      streak.addColorStop(1, "rgba(255, 252, 218, 0.92)");
-    } else {
-      streak.addColorStop(0, "rgba(255, 109, 36, 0)");
-      streak.addColorStop(0.52, "rgba(255, 132, 36, 0.72)");
-      streak.addColorStop(1, "rgba(255, 238, 180, 1)");
-    }
+    streak.addColorStop(0, "rgba(255, 109, 36, 0)");
+    streak.addColorStop(0.52, "rgba(255, 132, 36, 0.72)");
+    streak.addColorStop(1, "rgba(255, 238, 180, 1)");
 
-    ctx.shadowBlur = omen ? 16 : 24;
-    ctx.shadowColor = omen ? "rgba(255, 226, 134, 0.78)" : "rgba(255, 124, 38, 0.95)";
+    ctx.shadowBlur = 24;
+    ctx.shadowColor = "rgba(255, 124, 38, 0.95)";
     ctx.strokeStyle = streak;
-    ctx.lineWidth = omen ? (orbitLowPowerMode ? 6 : 9) : (orbitLowPowerMode ? 8 : 11);
+    ctx.lineWidth = orbitLowPowerMode ? 8 : 11;
     ctx.beginPath();
     ctx.moveTo(tailX, tailY);
     ctx.lineTo(comet.x, comet.y);
     ctx.stroke();
 
-    ctx.shadowBlur = omen ? 12 : 18;
-    ctx.fillStyle = omen ? "rgba(255, 253, 221, 0.88)" : "rgba(255, 241, 203, 0.96)";
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = "rgba(255, 241, 203, 0.96)";
     ctx.beginPath();
-    ctx.arc(comet.x, comet.y, omen ? (orbitLowPowerMode ? 4 : 5.5) : (orbitLowPowerMode ? 5 : 7), 0, TAU);
+    ctx.arc(comet.x, comet.y, orbitLowPowerMode ? 5 : 7, 0, TAU);
     ctx.fill();
 
     ctx.restore();
@@ -293,8 +259,8 @@
     if (cometFlash <= 0) return;
 
     ctx.save();
-    ctx.globalAlpha = cometFlash * (cometFlashTone === "omen" ? 0.16 : 0.28);
-    ctx.fillStyle = cometFlashTone === "omen" ? "#ffe991" : "#ff8a2a";
+    ctx.globalAlpha = cometFlash * 0.28;
+    ctx.fillStyle = "#ff8a2a";
     ctx.fillRect(0, 0, width, height);
     ctx.restore();
   }
@@ -308,7 +274,7 @@
       "Dodge pink debris and collect stars.",
       "Collect 4 stars to add a life!",
       "Jump outward past the outer ring to clear a run.",
-      "First comet is a warning. Later strikes remove 3 lives!",
+      "CAREFUL! Comet strikes remove 3 lives!",
     ]);
     updateHud("");
     updateControlButtons();
@@ -326,7 +292,6 @@
 
   const originalStartGame = startGame;
   startGame = function startGameWithCometReset() {
-    cometOmenSeen = false;
     originalStartGame();
     clearComet();
     instructionEl.classList.remove("screen-gameover");
