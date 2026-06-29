@@ -1,0 +1,8 @@
+name = "orbit-board-api"
+main = "src/index.js"
+compatibility_date = "2026-06-29"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "orbit_board"
+database_id = "replace-with-cloudflare-d1-database-id"
