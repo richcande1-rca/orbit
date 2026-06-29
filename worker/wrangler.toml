@@ -5,4 +5,4 @@ compatibility_date = "2026-06-29"
 [[d1_databases]]
 binding = "DB"
 database_name = "orbit_board"
-database_id = "replace-with-cloudflare-d1-database-id"
+database_id = "9153a9b9-c8a2-49be-b3ce-556913f37d3f"
