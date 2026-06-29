@@ -15,24 +15,24 @@
   board.className = "orbit-board is-hidden";
   board.setAttribute("role", "dialog");
   board.setAttribute("aria-modal", "true");
-  board.setAttribute("aria-label", "The Board");
+  board.setAttribute("aria-label", "Starboard");
 
   board.innerHTML = `
     <div class="orbit-board-card">
       <div class="orbit-board-top">
         <div>
-          <h2 class="orbit-board-title">The Board</h2>
-          <p id="orbitBoardNote" class="orbit-board-note">Shared Orbit board</p>
+          <h2 class="orbit-board-title">STARBOARD</h2>
+          <p id="orbitBoardNote" class="orbit-board-note">Shared Orbit leaderboard</p>
         </div>
-        <button id="orbitBoardClose" class="orbit-board-close" type="button" aria-label="Close The Board">×</button>
+        <button id="orbitBoardClose" class="orbit-board-close" type="button" aria-label="Close Starboard">×</button>
       </div>
 
       <div class="orbit-board-form">
         <input id="orbitBoardName" class="orbit-board-input" maxlength="18" autocomplete="nickname" placeholder="Your name" />
         <input id="orbitBoardMessage" class="orbit-board-input" maxlength="42" value="Kilroy was here." />
         <div class="orbit-board-actions">
-          <button id="orbitBoardSign" class="orbit-board-action" type="button">Sign the Board</button>
-          <button id="orbitBoardRefresh" class="orbit-board-action orbit-board-clear" type="button">Refresh Board</button>
+          <button id="orbitBoardSign" class="orbit-board-action" type="button">Submit Score</button>
+          <button id="orbitBoardRefresh" class="orbit-board-action orbit-board-clear" type="button">Refresh Starboard</button>
         </div>
       </div>
 
@@ -72,7 +72,7 @@
     try {
       localStorage.setItem(localKey, JSON.stringify(entries));
     } catch (error) {
-      updateHud("The Board could not save locally.");
+      updateHud("Starboard could not save locally.");
     }
   }
 
@@ -120,7 +120,7 @@
   }
 
   function renderLoading(text = "Contacting mission control...") {
-    note.textContent = "Shared Orbit board";
+    note.textContent = "Shared Orbit leaderboard";
     list.replaceChildren();
     const row = document.createElement("div");
     row.className = "orbit-board-empty";
@@ -130,13 +130,13 @@
 
   function render(entries, mode) {
     const ranked = sortEntries([...entries]).slice(0, maxEntries);
-    note.textContent = mode === "cloud" ? "Shared Orbit board" : "Local fallback board";
+    note.textContent = mode === "cloud" ? "Shared Orbit leaderboard" : "Local fallback Starboard";
     list.replaceChildren();
 
     if (!ranked.length) {
       const row = document.createElement("div");
       row.className = "orbit-board-empty";
-      row.textContent = mode === "cloud" ? "No names on the cloud wall yet. Go break orbit." : "Cloud offline. No local scores saved yet.";
+      row.textContent = mode === "cloud" ? "No names on the Starboard yet. Go break orbit." : "Cloud offline. No local scores saved yet.";
       list.appendChild(row);
       return;
     }
@@ -200,7 +200,7 @@
       render(await fetchCloudBoard(), "cloud");
     } catch (error) {
       render(loadLocal(), "local");
-      updateHud("Cloud Board unavailable. Showing local fallback.");
+      updateHud("Cloud Starboard unavailable. Showing local fallback.");
     }
   }
 
@@ -208,19 +208,19 @@
     const entry = currentEntry();
     rememberName(entry.name);
     signButton.disabled = true;
-    signButton.textContent = "Signing...";
+    signButton.textContent = "Submitting...";
 
     try {
       render(await postCloudEntry(entry), "cloud");
-      updateHud("Signed the Cloud Board.");
+      updateHud("Logged on the Starboard.");
     } catch (error) {
       const entries = sortEntries([entry, ...loadLocal()]).slice(0, maxEntries);
       saveLocal(entries);
       render(entries, "local");
-      updateHud("Cloud Board unavailable. Signed local fallback.");
+      updateHud("Cloud Starboard unavailable. Saved local fallback.");
     } finally {
       signButton.disabled = false;
-      signButton.textContent = "Sign the Board";
+      signButton.textContent = "Submit Score";
     }
   }
 
@@ -245,7 +245,7 @@
     boardButton.setAttribute("aria-expanded", "false");
 
     if (pausedByBoard) {
-      updateHud("Board closed. Tap pause to resume.");
+      updateHud("Starboard closed. Tap pause to resume.");
     }
   }
 
