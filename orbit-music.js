@@ -20,8 +20,11 @@
   let droneVoices = [];
   let pulseTimer = null;
   let sparkleTimer = null;
+  let watchdogTimer = null;
   let running = false;
+  let wantsMusic = false;
   let step = 0;
+  let lastKnownLevel = 1;
   let musicVolume = readStoredVolume();
 
   function readMuted() {
@@ -53,6 +56,31 @@
 
   function volumeToLevel() {
     return maxMusicLevel * (musicVolume / 100);
+  }
+
+  function currentLevel() {
+    if (typeof level === "number" && Number.isFinite(level)) {
+      lastKnownLevel = Math.max(1, level);
+    }
+    return lastKnownLevel;
+  }
+
+  function currentGameState() {
+    return typeof state === "string" ? state : "running";
+  }
+
+  function shouldPlayMusic() {
+    return wantsMusic && !document.hidden && !readMuted() && musicVolume > 0 && currentGameState() === "running";
+  }
+
+  function beatMs() {
+    const levelBoost = Math.min(8, currentLevel() - 1);
+    return Math.max(245, 340 - levelBoost * 11);
+  }
+
+  function sparkleMs() {
+    const levelBoost = Math.min(8, currentLevel() - 1);
+    return Math.max(1500, 2300 - levelBoost * 85);
   }
 
   function createContext() {
@@ -104,11 +132,11 @@
     return context;
   }
 
-  function setMasterLevel(level, seconds = 0.8) {
+  function setMasterLevel(levelValue, seconds = 0.8) {
     if (!context || !master) return;
     const now = context.currentTime;
     master.gain.cancelScheduledValues(now);
-    master.gain.setTargetAtTime(level, now, Math.max(0.03, seconds / 4));
+    master.gain.setTargetAtTime(levelValue, now, Math.max(0.03, seconds / 4));
   }
 
   function setMusicMuted(isMuted) {
@@ -126,7 +154,12 @@
     if (!musicVolumeSlider) return;
     musicVolume = Math.max(0, Math.min(100, Number(musicVolumeSlider.value) || 0));
     saveStoredVolume();
-    if (running && !readMuted()) setMasterLevel(volumeToLevel(), 0.18);
+    if (shouldPlayMusic()) {
+      ensureMusicPlaying();
+      setMasterLevel(volumeToLevel(), 0.18);
+    } else {
+      setMusicMuted(true);
+    }
     updateVolumeSlider();
   }
 
@@ -163,7 +196,7 @@
     droneGain.gain.exponentialRampToValueAtTime(0.62, now + 2.2);
   }
 
-  function pulseNote(frequency, duration = 0.18, level = 0.065, type = "square") {
+  function pulseNote(frequency, duration = 0.18, levelValue = 0.065, type = "square") {
     if (!context || !pulseGain) return;
 
     const now = context.currentTime;
@@ -176,7 +209,7 @@
     voiceFilter.type = "lowpass";
     voiceFilter.frequency.setValueAtTime(1650, now);
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(level, now + 0.014);
+    gain.gain.exponentialRampToValueAtTime(levelValue, now + 0.014);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
     osc.connect(voiceFilter);
@@ -206,37 +239,68 @@
     osc.stop(now + 0.62);
   }
 
-  function startSequencers() {
-    if (pulseTimer || sparkleTimer) return;
+  function playPulseStep() {
+    if (!shouldPlayMusic()) {
+      schedulePulse();
+      return;
+    }
 
     const pulsePattern = [220, 0, 329.63, 0, 293.66, 0, 329.63, 440];
     const arpPattern = [659.25, 739.99, 880, 987.77, 880, 739.99, 659.25, 554.37];
+    const levelBoost = Math.min(8, currentLevel() - 1);
+    const pulseFrequency = pulsePattern[step % pulsePattern.length];
+    const arpFrequency = arpPattern[step % arpPattern.length];
+    const pulseLift = 1 + levelBoost * 0.018;
 
-    pulseTimer = window.setInterval(() => {
-      if (!running || readMuted()) return;
-      const pulseFrequency = pulsePattern[step % pulsePattern.length];
-      const arpFrequency = arpPattern[step % arpPattern.length];
+    if (pulseFrequency) {
+      pulseNote(
+        pulseFrequency,
+        step % 8 === 7 ? 0.34 : 0.17,
+        (step % 8 === 7 ? 0.07 : 0.058) * pulseLift,
+        "square"
+      );
+    }
 
-      if (pulseFrequency) {
-        pulseNote(pulseFrequency, step % 8 === 7 ? 0.34 : 0.17, step % 8 === 7 ? 0.07 : 0.058, "square");
-      }
+    if (step % 2 === 0) {
+      pulseNote(arpFrequency, 0.14, 0.026 * pulseLift, "triangle");
+    }
 
-      if (step % 2 === 0) {
-        pulseNote(arpFrequency, 0.14, 0.026, "triangle");
-      }
-
-      step += 1;
-    }, 340);
-
-    const sparkleNotes = [880, 987.77, 1174.66, 1318.51, 1479.98];
-    sparkleTimer = window.setInterval(() => {
-      if (!running || readMuted()) return;
-      if (Math.random() < 0.72) sparkle(sparkleNotes[Math.floor(Math.random() * sparkleNotes.length)]);
-    }, 2300);
+    step += 1;
+    schedulePulse();
   }
 
-  function startMusic() {
-    if (readMuted()) return Promise.resolve(false);
+  function schedulePulse() {
+    window.clearTimeout(pulseTimer);
+    pulseTimer = window.setTimeout(playPulseStep, beatMs());
+  }
+
+  function playSparkleStep() {
+    if (shouldPlayMusic()) {
+      const sparkleNotes = [880, 987.77, 1174.66, 1318.51, 1479.98];
+      if (Math.random() < 0.72) sparkle(sparkleNotes[Math.floor(Math.random() * sparkleNotes.length)]);
+    }
+
+    scheduleSparkle();
+  }
+
+  function scheduleSparkle() {
+    window.clearTimeout(sparkleTimer);
+    sparkleTimer = window.setTimeout(playSparkleStep, sparkleMs());
+  }
+
+  function startSequencers() {
+    if (!pulseTimer) schedulePulse();
+    if (!sparkleTimer) scheduleSparkle();
+    if (!watchdogTimer) {
+      watchdogTimer = window.setInterval(() => {
+        if (shouldPlayMusic()) ensureMusicPlaying();
+        else if (context && master) setMusicMuted(true);
+      }, 1200);
+    }
+  }
+
+  function ensureMusicPlaying() {
+    if (!shouldPlayMusic()) return Promise.resolve(false);
 
     const ctx = createContext();
     if (!ctx) return Promise.resolve(false);
@@ -252,9 +316,19 @@
     }).catch(() => false);
   }
 
-  function stopMusic() {
+  function startMusic() {
+    wantsMusic = true;
+    return ensureMusicPlaying();
+  }
+
+  function pauseMusic() {
     running = false;
     setMusicMuted(true);
+  }
+
+  function stopMusic() {
+    wantsMusic = false;
+    pauseMusic();
   }
 
   function wrapStartGame() {
@@ -268,10 +342,32 @@
     };
   }
 
+  function wrapPause() {
+    if (typeof togglePause !== "function") return;
+
+    const originalTogglePause = togglePause;
+    togglePause = function togglePauseWithMusic() {
+      const result = originalTogglePause.apply(this, arguments);
+      if (currentGameState() === "running") startMusic();
+      else pauseMusic();
+      return result;
+    };
+  }
+
+  function wrapCrash() {
+    if (typeof crash !== "function") return;
+
+    const originalCrash = crash;
+    crash = function crashWithMusicState() {
+      const result = originalCrash.apply(this, arguments);
+      if (currentGameState() === "gameover") pauseMusic();
+      return result;
+    };
+  }
+
   function refreshFromSoundSetting() {
-    const isMuted = readMuted();
-    if (isMuted) stopMusic();
-    else if (running) setMusicMuted(false);
+    if (shouldPlayMusic()) ensureMusicPlaying();
+    else setMusicMuted(true);
   }
 
   updateVolumeSlider();
@@ -289,18 +385,22 @@
   }
 
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) stopMusic();
-    else if (running && !readMuted()) startMusic();
+    if (document.hidden) pauseMusic();
+    else refreshFromSoundSetting();
   });
 
-  window.addEventListener("pagehide", stopMusic);
+  window.addEventListener("pagehide", pauseMusic);
   window.addEventListener("pageshow", refreshFromSoundSetting);
 
   wrapStartGame();
+  wrapPause();
+  wrapCrash();
+  startSequencers();
 
   window.orbitMusic = {
     start: startMusic,
     stop: stopMusic,
+    pause: pauseMusic,
     refresh: refreshFromSoundSetting,
   };
 })();
