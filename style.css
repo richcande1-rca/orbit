@@ -158,6 +158,11 @@ body {
   z-index: 5;
 }
 
+.instruction.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .instruction.screen-layer {
   background: linear-gradient(135deg, rgba(7, 44, 80, 0.68), rgba(28, 18, 94, 0.64));
   border-color: rgba(135, 221, 255, 0.5);
