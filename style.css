@@ -50,6 +50,7 @@ body {
 
 .control-panel {
   display: flex;
+  align-items: center;
   gap: 8px;
   padding: 5px;
   border: 1px solid rgba(151, 235, 255, 0.16);
@@ -79,6 +80,28 @@ body {
 .control-button:disabled {
   opacity: 0.34;
   cursor: default;
+}
+
+.music-volume {
+  height: 36px;
+  min-width: 106px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid rgba(151, 235, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(2, 8, 22, 0.38);
+  color: rgba(238, 247, 255, 0.86);
+  box-shadow: 0 0 18px rgba(83, 213, 255, 0.08) inset;
+  font-weight: 900;
+  pointer-events: auto;
+}
+
+.music-volume input {
+  width: 72px;
+  accent-color: #74f7ff;
+  cursor: pointer;
 }
 
 .title {
@@ -219,196 +242,40 @@ body {
   display: block;
 }
 
-.instruction strong {
-  margin-bottom: 7px;
-  color: #ffffff;
-  font-size: clamp(1rem, 3vw, 1.25rem);
-  letter-spacing: 0.16em;
-  text-shadow: 0 0 14px rgba(133, 231, 255, 0.78);
-}
-
-.instruction.screen-layer strong {
-  color: #eaffff;
-  text-shadow: 0 0 16px rgba(105, 226, 255, 0.9), 0 0 24px rgba(166, 120, 255, 0.3);
-}
-
-.instruction.screen-special strong,
-.instruction.screen-final strong {
-  color: #fff2e8;
-  text-shadow: 0 0 16px rgba(255, 101, 117, 0.95), 0 0 24px rgba(255, 210, 130, 0.34);
-}
-
-.instruction.screen-reward strong,
-.instruction.screen-warp strong {
-  position: relative;
-  z-index: 1;
-  margin: 0 0 14px;
-  font-size: clamp(2.2rem, 12vw, 6rem);
-  line-height: 0.92;
-  letter-spacing: clamp(0.08em, 2vw, 0.22em);
-  text-transform: uppercase;
-  color: #ffffff;
-  text-shadow: 0 0 20px rgba(138, 236, 255, 0.96), 0 0 50px rgba(151, 102, 255, 0.36);
-}
-
-.instruction.screen-warp strong {
-  color: #fff8df;
-  text-shadow: 0 0 22px rgba(255, 241, 166, 1), 0 0 54px rgba(119, 230, 255, 0.64), 0 0 84px rgba(163, 108, 255, 0.44);
-  animation: orbitWarpTitle 2.4s ease-in-out infinite;
-}
-
-.instruction span {
-  opacity: 0.92;
-}
-
-.instruction.screen-layer span {
-  color: #effbff;
-  opacity: 0.96;
-}
-
-.instruction.screen-layer span:first-of-type {
-  color: #ffe9a8;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.instruction.screen-special span,
-.instruction.screen-final span {
-  color: #fff7f0;
-  opacity: 0.98;
-}
-
-.instruction.screen-reward span,
-.instruction.screen-warp span {
-  position: relative;
-  z-index: 1;
-  max-width: min(720px, calc(100vw - 42px));
-  color: #f3fbff;
-  font-size: clamp(1rem, 4.4vw, 1.55rem);
-  line-height: 1.32;
-  letter-spacing: 0.04em;
-  opacity: 0.96;
-  text-shadow: 0 0 16px rgba(83, 213, 255, 0.42);
-}
-
-.instruction.screen-reward span:first-of-type,
-.instruction.screen-warp span:first-of-type {
-  color: #ffe9a8;
-  font-weight: 900;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-size: clamp(0.9rem, 3.2vw, 1.15rem);
-}
-
-.instruction.screen-warp span:nth-of-type(4) {
-  margin-top: 12px;
-  color: #ffffff;
-  font-weight: 900;
-}
-
-.instruction.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.message {
-  position: fixed;
-  bottom: max(22px, env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
-  min-height: 2rem;
-  max-width: min(520px, calc(100vw - 28px));
-  padding: 10px 16px;
-  border-radius: 999px;
-  background: rgba(4, 6, 18, 0.42);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-align: center;
-  font-size: clamp(0.8rem, 2.5vw, 0.95rem);
-  box-shadow: 0 0 28px rgba(255, 255, 255, 0.06) inset;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.message:empty {
-  display: none;
-}
-
-@keyframes orbitRewardPulse {
-  0%, 100% {
-    transform: scale(0.92);
-    opacity: 0.36;
+@media (max-width: 720px) {
+  .hud-header {
+    padding-left: 10px;
+    padding-right: 10px;
   }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.72;
-  }
-}
 
-@keyframes orbitWarpSpin {
-  to {
-    transform: rotate(360deg);
+  .control-panel {
+    gap: 5px;
   }
-}
 
-@keyframes orbitWarpPulse {
-  0%, 100% {
-    transform: scale(0.88);
-    opacity: 0.54;
+  .control-button {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
   }
-  50% {
-    transform: scale(1.12);
-    opacity: 0.9;
-  }
-}
 
-@keyframes orbitWarpTitle {
-  0%, 100% {
-    transform: scale(1);
+  .music-volume {
+    height: 32px;
+    min-width: 76px;
+    gap: 5px;
+    padding: 0 7px;
   }
-  50% {
-    transform: scale(1.035);
-  }
-}
 
-@media (max-width: 720px), (pointer: coarse) {
-  .control-panel,
+  .music-volume input {
+    width: 46px;
+  }
+
+  .title {
+    letter-spacing: 0.2em;
+    font-size: clamp(1rem, 4vw, 1.7rem);
+  }
+
   .stats {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow: 0 0 12px rgba(83, 213, 255, 0.08) inset;
-  }
-
-  .instruction {
-    text-shadow: none;
-  }
-
-  .instruction.screen-layer,
-  .instruction.screen-special,
-  .instruction.screen-final {
-    box-shadow: 0 0 18px rgba(255, 110, 120, 0.18);
-  }
-
-  .instruction.screen-reward,
-  .instruction.screen-warp {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  .instruction.screen-warp::before {
-    opacity: 0.2;
-  }
-
-  .instruction strong,
-  .instruction.screen-layer strong,
-  .instruction.screen-special strong,
-  .instruction.screen-final strong {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.38);
-  }
-
-  .message {
-    box-shadow: none;
+    gap: 7px;
+    padding: 7px 9px;
   }
 }
