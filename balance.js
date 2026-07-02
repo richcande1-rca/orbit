@@ -16,3 +16,16 @@ makeHazards = function makeHazardsWithEarlyRunMercy() {
     hazard.speed *= earlyRunSpeedScale;
   }
 };
+
+const fasterRingMoveCooldownSeconds = 0.4;
+const baseMovePlayerForBalance = movePlayer;
+movePlayer = function movePlayerWithFasterRingHops(direction) {
+  const previousLane = player.lane;
+  const previousLevel = level;
+
+  baseMovePlayerForBalance(direction);
+
+  if (player.lane !== previousLane || level !== previousLevel) {
+    moveCooldown = Math.min(moveCooldown, fasterRingMoveCooldownSeconds);
+  }
+};
