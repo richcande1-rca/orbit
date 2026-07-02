@@ -1,7 +1,10 @@
 // Lightweight ambient techno bed for Orbit. No audio files.
 (() => {
   const soundButton = document.getElementById("sound");
-  const storageKey = "orbit-sound-muted";
+  const musicVolumeSlider = document.getElementById("music-volume");
+  const soundStorageKey = "orbit-sound-muted";
+  const volumeStorageKey = "orbit-music-volume";
+  const maxMusicLevel = 0.72;
   const params = new URLSearchParams(window.location.search);
   const previewMuted = params.get("muted") === "1" || params.get("preview") === "1";
 
@@ -19,14 +22,37 @@
   let sparkleTimer = null;
   let running = false;
   let step = 0;
+  let musicVolume = readStoredVolume();
 
   function readMuted() {
     if (previewMuted) return true;
     try {
-      return window.localStorage.getItem(storageKey) === "true";
+      return window.localStorage.getItem(soundStorageKey) === "true";
     } catch {
       return false;
     }
+  }
+
+  function readStoredVolume() {
+    try {
+      const stored = Number(window.localStorage.getItem(volumeStorageKey));
+      if (Number.isFinite(stored)) return Math.max(0, Math.min(100, stored));
+    } catch {
+      // Local storage can be blocked. Use the default.
+    }
+    return 76;
+  }
+
+  function saveStoredVolume() {
+    try {
+      window.localStorage.setItem(volumeStorageKey, String(Math.round(musicVolume)));
+    } catch {
+      // Local storage can be blocked. The slider still works for this session.
+    }
+  }
+
+  function volumeToLevel() {
+    return maxMusicLevel * (musicVolume / 100);
   }
 
   function createContext() {
@@ -87,7 +113,21 @@
 
   function setMusicMuted(isMuted) {
     if (!context || !master) return;
-    setMasterLevel(isMuted ? 0 : 0.52, isMuted ? 0.25 : 0.8);
+    setMasterLevel(isMuted ? 0 : volumeToLevel(), isMuted ? 0.25 : 0.8);
+  }
+
+  function updateVolumeSlider() {
+    if (!musicVolumeSlider) return;
+    musicVolumeSlider.value = String(Math.round(musicVolume));
+    musicVolumeSlider.setAttribute("aria-valuetext", `${Math.round(musicVolume)} percent`);
+  }
+
+  function applyVolumeFromSlider() {
+    if (!musicVolumeSlider) return;
+    musicVolume = Math.max(0, Math.min(100, Number(musicVolumeSlider.value) || 0));
+    saveStoredVolume();
+    if (running && !readMuted()) setMasterLevel(volumeToLevel(), 0.18);
+    updateVolumeSlider();
   }
 
   function buildDrone() {
@@ -232,6 +272,13 @@
     const isMuted = readMuted();
     if (isMuted) stopMusic();
     else if (running) setMusicMuted(false);
+  }
+
+  updateVolumeSlider();
+
+  if (musicVolumeSlider) {
+    musicVolumeSlider.addEventListener("input", applyVolumeFromSlider);
+    musicVolumeSlider.addEventListener("change", applyVolumeFromSlider);
   }
 
   if (soundButton) {
