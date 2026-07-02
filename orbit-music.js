@@ -3,7 +3,7 @@
   const soundButton = document.getElementById("sound");
   const musicVolumeSlider = document.getElementById("music-volume");
   const soundStorageKey = "orbit-sound-muted";
-  const volumeStorageKey = "orbit-music-volume";
+  const volumeStorageKey = "orbit-music-volume-v2";
   const maxMusicLevel = 0.72;
   const params = new URLSearchParams(window.location.search);
   const previewMuted = params.get("muted") === "1" || params.get("preview") === "1";
@@ -43,7 +43,7 @@
     } catch {
       // Local storage can be blocked. Use the default.
     }
-    return 76;
+    return 100;
   }
 
   function saveStoredVolume() {
