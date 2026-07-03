@@ -1,0 +1,38 @@
+/* Reward-card overrides: keep normal instructions readable, but make major run cards loud. */
+.instruction.screen-reward > strong,
+.instruction.screen-warp > strong {
+  margin-bottom: clamp(18px, 4vw, 38px) !important;
+  color: #faffff !important;
+  font-size: clamp(4.4rem, 17vw, 10rem) !important;
+  line-height: 0.82 !important;
+  letter-spacing: clamp(0.08em, 1.8vw, 0.22em) !important;
+  text-transform: uppercase !important;
+  text-shadow:
+    0 0 10px rgba(255, 255, 255, 1),
+    0 0 32px rgba(101, 226, 255, 1),
+    0 0 76px rgba(139, 105, 255, 0.7),
+    0 0 120px rgba(83, 213, 255, 0.48) !important;
+}
+
+.instruction.screen-reward > span,
+.instruction.screen-warp > span {
+  color: rgba(248, 253, 255, 0.94) !important;
+  font-size: clamp(1.15rem, 4vw, 1.7rem) !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.035em !important;
+  line-height: 1.35 !important;
+  text-shadow: 0 0 14px rgba(83, 213, 255, 0.56), 0 0 28px rgba(139, 105, 255, 0.24) !important;
+}
+
+@media (max-width: 720px) {
+  .instruction.screen-reward > strong,
+  .instruction.screen-warp > strong {
+    font-size: clamp(3.15rem, 15vw, 6.8rem) !important;
+    line-height: 0.86 !important;
+  }
+
+  .instruction.screen-reward > span,
+  .instruction.screen-warp > span {
+    font-size: clamp(1.05rem, 4.4vw, 1.42rem) !important;
+  }
+}
