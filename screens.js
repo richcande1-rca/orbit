@@ -5,21 +5,21 @@ const orbitMoveCooldownSeconds = 0.4;
 const orbitLevelHoldMs = 700;
 const orbitLayerCardMs = 950;
 const orbitSpecialHoldMs = 1350;
-const orbitRewardHoldMs = 520;
+const orbitRewardHoldMs = 1100;
 const orbitLowPowerMode = window.matchMedia("(pointer: coarse), (max-width: 720px)").matches;
 const orbitDprCap = orbitLowPowerMode ? 1 : 2;
 const orbitRewardCards = {
   4: {
     title: "ORBIT BREACH",
-    lines: ["Run 3 cleared.", "Inner field broken.", "Tap the blue planet to continue."],
+    lines: ["Run 3 cleared.", "Inner field broken.", "Click or tap anywhere to continue."],
   },
   7: {
     title: "DEEP ORBIT",
-    lines: ["Run 6 cleared.", "The system opens wider.", "Tap the blue planet to continue."],
+    lines: ["Run 6 cleared.", "The system opens wider.", "Click or tap anywhere to continue."],
   },
   11: {
     title: "EVENT HORIZON",
-    lines: ["Run 10 cleared.", "Space begins to fold.", "Tap the blue planet to continue."],
+    lines: ["Run 10 cleared.", "Space begins to fold.", "Click or tap anywhere to continue."],
   },
 };
 
@@ -391,13 +391,13 @@ canvas.addEventListener(
 
     stopOrbitInput(event);
 
-    if (!tappedPlanet(event)) {
-      updateHud(state === "reward" ? "Tap the blue planet to continue." : "Tap the blue planet to restart.");
+    if (state === "reward") {
+      continueFromOrbitReward();
       return;
     }
 
-    if (state === "reward") {
-      continueFromOrbitReward();
+    if (!tappedPlanet(event)) {
+      updateHud("Tap the blue planet to restart.");
       return;
     }
 
