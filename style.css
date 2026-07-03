@@ -247,6 +247,25 @@ body {
   display: block;
 }
 
+.instruction strong {
+  margin-bottom: 7px;
+  color: #ffffff;
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 14px rgba(133, 231, 255, 0.78);
+}
+
+.instruction.screen-layer strong {
+  color: #eaffff;
+  text-shadow: 0 0 16px rgba(105, 226, 255, 0.9), 0 0 24px rgba(166, 120, 255, 0.3);
+}
+
+.instruction.screen-special strong,
+.instruction.screen-final strong {
+  color: #fff2e8;
+  text-shadow: 0 0 16px rgba(255, 101, 117, 0.95), 0 0 24px rgba(255, 210, 130, 0.34);
+}
+
 @media (max-width: 720px) {
   .hud-header {
     padding-left: 10px;
