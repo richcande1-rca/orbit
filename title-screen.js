@@ -3,6 +3,8 @@
   titleScreen.className = "title-screen";
   titleScreen.setAttribute("aria-label", "Opening title screen");
 
+  const orbitBuildStamp = "Orbit build 2026.07.03.2";
+
   const skipButton = document.createElement("button");
   skipButton.className = "title-skip";
   skipButton.type = "button";
@@ -13,6 +15,22 @@
   card.setAttribute("role", "button");
   card.setAttribute("tabindex", "0");
 
+  const versionStamp = document.createElement("div");
+  versionStamp.className = "title-version-stamp";
+  versionStamp.textContent = orbitBuildStamp;
+  Object.assign(versionStamp.style, {
+    position: "absolute",
+    left: "max(14px, env(safe-area-inset-left))",
+    bottom: "max(12px, env(safe-area-inset-bottom))",
+    zIndex: "2",
+    color: "rgba(238, 247, 255, 0.42)",
+    fontSize: "11px",
+    fontWeight: "800",
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    pointerEvents: "none",
+  });
+
   const hudHeader = document.querySelector(".hud-header");
   const moveControls = document.getElementById("mobileControls");
 
@@ -22,7 +40,7 @@
     if (moveControls) moveControls.style.visibility = value;
   }
 
-  titleScreen.append(skipButton, card);
+  titleScreen.append(skipButton, card, versionStamp);
   document.body.appendChild(titleScreen);
 
   const titlePages = [
