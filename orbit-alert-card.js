@@ -1,47 +1,50 @@
 (() => {
   const alertMessage = "COMET DETECTED INBOUND!";
-  let card;
   let timer = 0;
 
-  function showAlertCard() {
-    if (!card) {
-      card = document.createElement("div");
-      card.textContent = "COMET WARNING";
-      card.setAttribute("aria-hidden", "true");
-      Object.assign(card.style, {
-        position: "fixed",
-        inset: "0",
-        zIndex: "18",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px",
-        background: "radial-gradient(circle at 50% 48%, rgba(255, 105, 42, 0.32), transparent 34%), rgba(8, 2, 10, 0.55)",
-        color: "#fff8e8",
-        fontSize: "clamp(3rem, 14vw, 9rem)",
-        fontWeight: "950",
-        letterSpacing: "0.12em",
-        lineHeight: "0.9",
-        textAlign: "center",
-        textTransform: "uppercase",
-        textShadow: "0 0 12px rgba(255,255,255,.9), 0 0 36px rgba(255,135,42,.95), 0 0 90px rgba(255,60,24,.5)",
-        pointerEvents: "none",
-        opacity: "0",
-        transition: "opacity 120ms ease-out",
-      });
-      document.body.appendChild(card);
-    }
+  function showBottomAlert() {
+    if (!messageEl) return;
 
     clearTimeout(timer);
-    card.style.opacity = "1";
+    messageEl.textContent = "⚠ COMET WARNING ⚠";
+    Object.assign(messageEl.style, {
+      color: "#ff2f2f",
+      fontWeight: "950",
+      letterSpacing: "0.12em",
+      textTransform: "uppercase",
+      textShadow: "0 0 10px rgba(255, 47, 47, 1), 0 0 22px rgba(255, 0, 0, 0.75)",
+      animation: "orbitBottomWarningFlash 0.22s steps(2, end) infinite",
+    });
+
     timer = setTimeout(() => {
-      card.style.opacity = "0";
+      messageEl.style.color = "";
+      messageEl.style.fontWeight = "";
+      messageEl.style.letterSpacing = "";
+      messageEl.style.textTransform = "";
+      messageEl.style.textShadow = "";
+      messageEl.style.animation = "";
     }, 1180);
   }
+
+  function ensureBottomAlertStyle() {
+    if (document.getElementById("orbit-bottom-warning-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "orbit-bottom-warning-style";
+    style.textContent = `
+      @keyframes orbitBottomWarningFlash {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.34; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  ensureBottomAlertStyle();
 
   const originalUpdateHud = updateHud;
   updateHud = function updateHudWithOrbitAlert(text) {
     originalUpdateHud(text);
-    if (text === alertMessage) showAlertCard();
+    if (text === alertMessage) showBottomAlert();
   };
 })();
