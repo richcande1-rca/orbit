@@ -230,22 +230,29 @@ function orbitLayerForRun(run) {
     };
   }
 
-  if (run <= 5) {
+  if (run <= 4) {
     return {
-      title: "GRAVITY SHEAR",
+      title: "DEEP ORBIT",
+      line: "The path opens wider now.",
+    };
+  }
+
+  if (run <= 6) {
+    return {
+      title: "GRAVITY SHIFT",
       line: "The traffic pulls harder now.",
     };
   }
 
   if (run <= 9) {
     return {
-      title: "DEEP FIELD",
+      title: "COMET WARNING",
       line: "Stay patient. The gaps are moving.",
     };
   }
 
   return {
-    title: "FINAL APPROACH",
+    title: "FINAL ORBIT",
     line: "One clean climb to apogee.",
   };
 }
