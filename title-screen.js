@@ -70,8 +70,85 @@
     },
   ];
 
+  const difficultyButtons = [];
+  const difficultyChoices = [
+    ["easy", "EASY"],
+    ["normal", "NORMAL"],
+    ["hard", "HARD"],
+  ];
+
   let titlePageIndex = 0;
   let titleOpen = true;
+
+  function updateDifficultyButtons() {
+    const current = typeof window.orbitGetDifficulty === "function" ? window.orbitGetDifficulty() : "normal";
+
+    for (const button of difficultyButtons) {
+      const active = button.dataset.difficulty === current;
+      button.disabled = active;
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    }
+  }
+
+  function addDifficultySelector() {
+    if (typeof window.orbitSetDifficulty !== "function") return;
+
+    const row = document.createElement("div");
+    row.className = "title-difficulty-row";
+    Object.assign(row.style, {
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: "8px",
+      margin: "4px 0 0",
+    });
+
+    const label = document.createElement("div");
+    label.textContent = "JUMP SPEED";
+    Object.assign(label.style, {
+      flexBasis: "100%",
+      color: "rgba(238, 247, 255, 0.66)",
+      fontSize: "0.72rem",
+      fontWeight: "900",
+      letterSpacing: "0.14em",
+    });
+    row.appendChild(label);
+
+    difficultyButtons.length = 0;
+
+    for (const [value, text] of difficultyChoices) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.dataset.difficulty = value;
+      button.textContent = text;
+      Object.assign(button.style, {
+        minWidth: "78px",
+        minHeight: "34px",
+        border: "1px solid rgba(151, 235, 255, 0.34)",
+        borderRadius: "999px",
+        background: "rgba(2, 8, 22, 0.42)",
+        color: "#eef7ff",
+        font: "inherit",
+        fontSize: "0.72rem",
+        fontWeight: "900",
+        letterSpacing: "0.12em",
+        cursor: "pointer",
+      });
+
+      button.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        window.orbitSetDifficulty(value);
+        updateDifficultyButtons();
+      }, { passive: false });
+
+      row.appendChild(button);
+      difficultyButtons.push(button);
+    }
+
+    card.appendChild(row);
+    updateDifficultyButtons();
+  }
 
   function renderTitlePage() {
     const page = titlePages[titlePageIndex];
@@ -122,6 +199,10 @@
       button.type = "button";
       button.textContent = page.button;
       card.appendChild(button);
+    }
+
+    if (!isAttract) {
+      addDifficultySelector();
     }
 
     if (page.hint) {
