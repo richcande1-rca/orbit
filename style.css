@@ -292,6 +292,29 @@ body {
   text-shadow: 0 0 12px rgba(83, 213, 255, 0.32);
 }
 
+.instruction.screen-reward strong {
+  margin-bottom: clamp(14px, 2.8vw, 26px);
+  color: #f8feff;
+  font-size: clamp(3.4rem, 14vw, 9rem);
+  line-height: 0.88;
+  letter-spacing: clamp(0.08em, 1.8vw, 0.2em);
+  text-transform: uppercase;
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.95),
+    0 0 28px rgba(101, 226, 255, 0.95),
+    0 0 62px rgba(139, 105, 255, 0.52),
+    0 0 96px rgba(83, 213, 255, 0.34);
+}
+
+.instruction.screen-reward span {
+  color: rgba(244, 252, 255, 0.9);
+  font-size: clamp(0.95rem, 3.2vw, 1.35rem);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  line-height: 1.4;
+  text-shadow: 0 0 12px rgba(83, 213, 255, 0.48), 0 0 22px rgba(139, 105, 255, 0.18);
+}
+
 .instruction.screen-special strong,
 .instruction.screen-final strong {
   color: #fff2e8;
