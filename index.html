@@ -51,6 +51,30 @@
 
   <div id="message" class="message"></div>
 
+  <script>
+    (() => {
+      const difficultyShortcutCodes = new Set(["Digit1", "Digit2", "Digit3", "Numpad1", "Numpad2", "Numpad3"]);
+
+      window.addEventListener(
+        "keydown",
+        (event) => {
+          if (!difficultyShortcutCodes.has(event.code)) return;
+
+          const target = event.target;
+          if (!target) return;
+
+          const editable =
+            target.isContentEditable ||
+            target.matches?.("input, textarea, select, [contenteditable='true'], [contenteditable='']");
+
+          if (editable) {
+            event.stopImmediatePropagation();
+          }
+        },
+        { capture: true }
+      );
+    })();
+  </script>
   <script src="game.js"></script>
   <script src="balance.js"></script>
   <script src="planet.js"></script>
