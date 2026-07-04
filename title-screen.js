@@ -3,7 +3,7 @@
   titleScreen.className = "title-screen";
   titleScreen.setAttribute("aria-label", "Opening title screen");
 
-  const orbitBuildStamp = "Orbit build 2026.07.03.4";
+  const orbitBuildStamp = "Orbit build 2026.07.03.5";
 
   const skipButton = document.createElement("button");
   skipButton.className = "title-skip";
