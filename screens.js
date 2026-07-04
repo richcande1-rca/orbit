@@ -22,15 +22,43 @@ const orbitRewardCards = {
     lines: ["Run 10 cleared.", "Space begins to fold.", "Click or tap anywhere to continue."],
   },
 };
+const orbitDifficultyModes = {
+  easy: { label: "Easy", moveCooldown: 0.28, postRewardGrace: 0.15 },
+  normal: { label: "Normal", moveCooldown: orbitMoveCooldownSeconds, postRewardGrace: 0.08 },
+  hard: { label: "Hard", moveCooldown: 0.58, postRewardGrace: 0.04 },
+};
 
 let orbitRewardSeen = new Set();
 let orbitCompleteShown = false;
 let orbitLastSeenLevel = 1;
 let orbitInputUnlockAt = 0;
 let orbitLayerHideAt = 0;
+let orbitDifficulty = "normal";
+let orbitPostRewardJump = false;
 
 function orbitNow() {
   return performance.now();
+}
+
+function orbitDifficultyConfig() {
+  return orbitDifficultyModes[orbitDifficulty] || orbitDifficultyModes.normal;
+}
+
+function setOrbitDifficulty(nextDifficulty) {
+  if (!orbitDifficultyModes[nextDifficulty]) return;
+  orbitDifficulty = nextDifficulty;
+  updateHud(`Jump speed: ${orbitDifficultyConfig().label}.`);
+}
+
+function orbitDestinationHasThreat(lane) {
+  if (lane < 0 || lane >= ringCount || !rings[lane]) return false;
+
+  return hazards.some((hazard) => {
+    if (hazard.lane !== lane) return false;
+    const ringRadius = rings[hazard.lane];
+    const angularHitBox = hazard.size / ringRadius + 0.08;
+    return angleDistance(player.angle, hazard.angle) < angularHitBox;
+  });
 }
 
 function holdOrbitInput(ms) {
@@ -45,6 +73,12 @@ function stopOrbitInput(event) {
   event.preventDefault();
   event.stopImmediatePropagation();
 }
+
+const orbitOriginalStartGame = startGame;
+startGame = function startGameWithOrbitDifficulty() {
+  orbitPostRewardJump = false;
+  orbitOriginalStartGame();
+};
 
 makeBackground = function makeBackgroundPerformance() {
   const starDensity = orbitLowPowerMode ? 8600 : 3900;
@@ -173,8 +207,12 @@ movePlayer = function movePlayerWithBalance(direction) {
     return;
   }
 
+  const difficulty = orbitDifficultyConfig();
+  const destinationLane = player.lane + direction;
+  const rewardGraceBlocked = orbitPostRewardJump && orbitDestinationHasThreat(destinationLane);
+
   player.lane += direction;
-  moveCooldown = orbitMoveCooldownSeconds;
+  moveCooldown = difficulty.moveCooldown;
   flash = 0.2;
 
   if (player.lane >= ringCount) {
@@ -196,6 +234,14 @@ movePlayer = function movePlayerWithBalance(direction) {
     }
   } else {
     updateHud(direction > 0 ? "Outward." : "Inward.");
+  }
+
+  if (orbitPostRewardJump) {
+    if (!rewardGraceBlocked) {
+      invulnerable = Math.max(invulnerable, difficulty.postRewardGrace);
+    }
+
+    orbitPostRewardJump = false;
   }
 };
 
@@ -278,12 +324,14 @@ function showOrbitTrainingScreen() {
   orbitLastSeenLevel = 1;
   orbitInputUnlockAt = 0;
   orbitLayerHideAt = 0;
+  orbitPostRewardJump = false;
   setOrbitScreen("TRAINING ORBIT", [
     "Tap the blue center planet to move outward.",
     "Tap anywhere else to move inward.",
     "Dodge pink debris and collect stars.",
     "Collect 4 stars to add a life!",
     "Jump outward past the outer ring to clear a run.",
+    "Press 1 / 2 / 3 for Easy / Normal / Hard jump speed.",
     "CAREFUL! Comet strikes remove 3 lives!",
   ]);
   updateHud("");
@@ -318,6 +366,7 @@ function continueFromOrbitReward() {
   player.lane = 0;
   moveCooldown = 0;
   invulnerable = 1.0;
+  orbitPostRewardJump = true;
   instructionEl.classList.add("hidden");
   updateHud(`Run ${level}. Planet out. Rings in.`);
   updateControlButtons();
@@ -352,6 +401,7 @@ function watchOrbitProgress() {
     orbitLastSeenLevel = 1;
     orbitInputUnlockAt = 0;
     orbitLayerHideAt = 0;
+    orbitPostRewardJump = false;
   }
 
   if (state === "running" && level !== orbitLastSeenLevel) {
@@ -409,6 +459,24 @@ canvas.addEventListener(
 window.addEventListener(
   "keydown",
   (event) => {
+    if (event.code === "Digit1" || event.code === "Numpad1") {
+      event.preventDefault();
+      setOrbitDifficulty("easy");
+      return;
+    }
+
+    if (event.code === "Digit2" || event.code === "Numpad2") {
+      event.preventDefault();
+      setOrbitDifficulty("normal");
+      return;
+    }
+
+    if (event.code === "Digit3" || event.code === "Numpad3") {
+      event.preventDefault();
+      setOrbitDifficulty("hard");
+      return;
+    }
+
     if (event.code !== "Space" && event.code !== "Enter") return;
     if (state !== "running" && state !== "reward" && state !== "complete") return;
 
@@ -430,6 +498,9 @@ window.addEventListener(
   },
   { capture: true }
 );
+
+window.orbitSetDifficulty = setOrbitDifficulty;
+window.orbitGetDifficulty = () => orbitDifficulty;
 
 window.addEventListener("resize", resize);
 resize();
