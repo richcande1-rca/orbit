@@ -321,6 +321,15 @@ body {
   text-shadow: 0 0 16px rgba(255, 101, 117, 0.95), 0 0 24px rgba(255, 210, 130, 0.34);
 }
 
+@media (max-width: 720px), (pointer: coarse) {
+  .control-panel,
+  .stats,
+  .instruction {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 @media (max-width: 720px) {
   .hud-header {
     padding-left: 10px;
