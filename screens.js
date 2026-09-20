@@ -36,6 +36,9 @@ const orbitTwinCometRun = 10;
 const orbitSafeCorridorMs = 4200;
 const orbitPhaseHiddenMs = 900;
 const orbitPhaseGapMs = 2400;
+const orbitFirstLightRun = 1;
+const orbitFirstLightDurationMs = 1450;
+const orbitFirstLightTextAtMs = 900;
 
 let orbitRewardSeen = new Set();
 let orbitCompleteShown = false;
@@ -50,6 +53,12 @@ let orbitSafeLaneUntil = 0;
 let orbitPhaseLane = -1;
 let orbitPhaseLaneUntil = 0;
 let orbitNextPhaseAt = 0;
+let orbitFirstLightActive = false;
+let orbitFirstLightStartedAt = 0;
+let orbitFirstLightTextShown = false;
+let orbitFirstLightFrozenHazards = [];
+let orbitFirstLightFrozenBonus = null;
+let orbitFirstLightStreaks = [];
 
 function rebuildOrbitLiteBackgroundCache() {
   if (!orbitUseLowPowerMode() || width <= 0 || height <= 0) {
@@ -129,6 +138,7 @@ function stopOrbitInput(event) {
 
 const orbitOriginalStartGame = startGame;
 startGame = function startGameWithOrbitDifficulty() {
+  cancelOrbitFirstLight();
   orbitPostRewardJump = false;
   orbitOriginalStartGame();
 };
@@ -342,6 +352,24 @@ function updateOrbitPhaseShift() {
   updateHud("PHASE SHIFT — ORBIT LINE LOST.");
 }
 
+function advanceOrbitToNextRun() {
+  level += 1;
+  levelStarsCollected = 0;
+  player.lane = 0;
+  invulnerable = 0.9;
+  const orbitChange = typeof applyRingCountForLevel === "function" && applyRingCountForLevel();
+  makeHazards();
+  placeBonusStar();
+
+  if (orbitChange === "expanded") {
+    updateHud(`Level ${level}. Orbit expanded.`);
+  } else if (orbitChange === "stabilized") {
+    updateHud(`Level ${level}. Orbit stabilized.`);
+  } else {
+    updateHud(`Level ${level}. Planet out. Rings in.`);
+  }
+}
+
 movePlayer = function movePlayerWithBalance(direction) {
   if (moveCooldown > 0) return;
 
@@ -360,20 +388,11 @@ movePlayer = function movePlayerWithBalance(direction) {
 
   if (player.lane >= ringCount) {
     score += 1;
-    level += 1;
-    levelStarsCollected = 0;
-    player.lane = 0;
-    invulnerable = 0.9;
-    const orbitChange = typeof applyRingCountForLevel === "function" && applyRingCountForLevel();
-    makeHazards();
-    placeBonusStar();
 
-    if (orbitChange === "expanded") {
-      updateHud(`Level ${level}. Orbit expanded.`);
-    } else if (orbitChange === "stabilized") {
-      updateHud(`Level ${level}. Orbit stabilized.`);
+    if (level === orbitFirstLightRun) {
+      beginOrbitFirstLight();
     } else {
-      updateHud(`Level ${level}. Planet out. Rings in.`);
+      advanceOrbitToNextRun();
     }
   } else {
     updateHud(direction > 0 ? "Outward." : "Inward.");
@@ -410,6 +429,186 @@ function setOrbitScreen(title, lines, tone = "normal") {
 
   messageEl.textContent = "";
 }
+
+function restoreOrbitFirstLightMotion() {
+  for (const frozen of orbitFirstLightFrozenHazards) {
+    if (frozen.hazard) frozen.hazard.speed = frozen.speed;
+  }
+  orbitFirstLightFrozenHazards = [];
+
+  if (orbitFirstLightFrozenBonus?.star) {
+    orbitFirstLightFrozenBonus.star.speed = orbitFirstLightFrozenBonus.speed;
+  }
+  orbitFirstLightFrozenBonus = null;
+}
+
+function cancelOrbitFirstLight() {
+  if (!orbitFirstLightActive) return;
+  restoreOrbitFirstLightMotion();
+  orbitFirstLightActive = false;
+  orbitFirstLightStartedAt = 0;
+  orbitFirstLightTextShown = false;
+  orbitFirstLightStreaks = [];
+}
+
+function beginOrbitFirstLight() {
+  orbitFirstLightActive = true;
+  orbitFirstLightStartedAt = orbitNow();
+  orbitFirstLightTextShown = false;
+  orbitLayerHideAt = 0;
+  player.lane = Math.max(0, ringCount - 1);
+  invulnerable = Math.max(invulnerable, 1.5);
+  moveCooldown = 0;
+  state = "stageevent";
+
+  orbitFirstLightFrozenHazards = hazards.map((hazard) => {
+    const frozen = { hazard, speed: hazard.speed };
+    hazard.speed = 0;
+    return frozen;
+  });
+
+  orbitFirstLightFrozenBonus = bonusStar
+    ? { star: bonusStar, speed: bonusStar.speed }
+    : null;
+  if (bonusStar) bonusStar.speed = 0;
+
+  orbitFirstLightStreaks = Array.from({ length: 9 }, (_, index) => ({
+    angle: rand(0, TAU),
+    delay: 540 + index * 24 + rand(0, 80),
+    speed: rand(0.78, 1.12),
+    length: rand(14, 26),
+  }));
+
+  instructionEl.classList.add("hidden");
+  holdOrbitInput(orbitFirstLightDurationMs + 120);
+  updateHud("");
+  updateControlButtons();
+}
+
+function finishOrbitFirstLight() {
+  if (!orbitFirstLightActive) return;
+
+  restoreOrbitFirstLightMotion();
+  orbitFirstLightActive = false;
+  orbitFirstLightStartedAt = 0;
+  orbitFirstLightTextShown = false;
+  orbitFirstLightStreaks = [];
+  instructionEl.classList.add("hidden");
+  state = "running";
+  advanceOrbitToNextRun();
+  updateControlButtons();
+}
+
+function updateOrbitFirstLight() {
+  if (!orbitFirstLightActive) return;
+
+  const elapsed = orbitNow() - orbitFirstLightStartedAt;
+
+  if (!orbitFirstLightTextShown && elapsed >= orbitFirstLightTextAtMs) {
+    orbitFirstLightTextShown = true;
+    setOrbitScreen("FIRST LIGHT", ["ORBIT STABLE"], "special");
+  }
+
+  if (elapsed >= orbitFirstLightDurationMs) {
+    finishOrbitFirstLight();
+  }
+}
+
+function drawOrbitFirstLight() {
+  if (!orbitFirstLightActive) return;
+
+  const elapsed = orbitNow() - orbitFirstLightStartedAt;
+  const minDimension = Math.min(width, height);
+  const pulseProgress = clamp(elapsed / 520, 0, 1);
+  const pulseAlpha = Math.sin(pulseProgress * Math.PI);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+
+  if (pulseAlpha > 0) {
+    ctx.globalAlpha = pulseAlpha * 0.12;
+    ctx.fillStyle = "#eaffff";
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.globalAlpha = pulseAlpha * 0.72;
+    ctx.strokeStyle = "#dfffff";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.arc(
+      centerX,
+      centerY,
+      planetRadius * (1.1 + pulseProgress * 3.1),
+      0,
+      TAU
+    );
+    ctx.stroke();
+
+    ctx.globalAlpha = pulseAlpha * 0.55;
+    ctx.fillStyle = "#efffff";
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, planetRadius * (0.7 + pulseAlpha * 0.5), 0, TAU);
+    ctx.fill();
+  }
+
+  rings.forEach((radius, lane) => {
+    const ringStart = 230 + lane * 105;
+    const ringProgress = (elapsed - ringStart) / 300;
+    if (ringProgress <= 0 || ringProgress >= 1) return;
+
+    const alpha = Math.sin(ringProgress * Math.PI);
+    ctx.globalAlpha = alpha * 0.92;
+    ctx.strokeStyle = lane % 2 === 0 ? "#e9ffff" : "#8cecff";
+    ctx.lineWidth = 2 + alpha * 3;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, TAU);
+    ctx.stroke();
+  });
+
+  const starBrighten = clamp(1 - Math.abs(elapsed - 720) / 360, 0, 1);
+  if (starBrighten > 0) {
+    ctx.globalAlpha = starBrighten * 0.72;
+    ctx.fillStyle = "#ffffff";
+    for (const star of bgStars) {
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, Math.max(0.9, star.r * 1.35), 0, TAU);
+      ctx.fill();
+    }
+  }
+
+  const outerRadius = rings.length ? rings[rings.length - 1] : planetRadius * 3;
+  for (const streak of orbitFirstLightStreaks) {
+    const progress = clamp(
+      (elapsed - streak.delay) / (560 / streak.speed),
+      0,
+      1
+    );
+    if (progress <= 0 || progress >= 1) continue;
+
+    const headRadius = outerRadius + 8 + progress * minDimension * 0.32;
+    const tailRadius = Math.max(
+      outerRadius,
+      headRadius - streak.length - progress * 12
+    );
+    const cos = Math.cos(streak.angle);
+    const sin = Math.sin(streak.angle);
+
+    ctx.globalAlpha = (1 - progress) * 0.9;
+    ctx.strokeStyle = "#dffbff";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(centerX + cos * tailRadius, centerY + sin * tailRadius);
+    ctx.lineTo(centerX + cos * headRadius, centerY + sin * headRadius);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+const orbitDrawBeforeStageEvents = draw;
+draw = function drawWithOrbitStageEvents() {
+  orbitDrawBeforeStageEvents();
+  drawOrbitFirstLight();
+};
 
 function orbitLayerForRun(run) {
   if (run === orbitCounterflowRun) {
@@ -573,6 +772,8 @@ function showOrbitCompleteScreen() {
 }
 
 function watchOrbitProgress() {
+  updateOrbitFirstLight();
+
   if (state === "running" && level === 1 && score === 0) {
     orbitRewardSeen = new Set();
     orbitCompleteShown = false;
