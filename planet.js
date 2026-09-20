@@ -1,6 +1,43 @@
 // Visual override for the central planet.
 // Keeps gameplay untouched while making the center feel like a stylized ringed world.
 function drawPlanet() {
+  if (window.orbitPerformance?.lowPower) {
+    const ringTilt = -0.28;
+    const ringWidth = planetRadius * 1.72;
+    const ringHeight = planetRadius * 0.36;
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(120, 219, 255, 0.34)";
+    ctx.lineWidth = Math.max(4, planetRadius * 0.1);
+    ctx.beginPath();
+    ctx.ellipse(centerX, centerY, ringWidth, ringHeight, ringTilt, Math.PI, TAU);
+    ctx.stroke();
+
+    const surface = ctx.createRadialGradient(
+      centerX - planetRadius * 0.4,
+      centerY - planetRadius * 0.48,
+      2,
+      centerX + planetRadius * 0.12,
+      centerY + planetRadius * 0.14,
+      planetRadius * 1.18
+    );
+    surface.addColorStop(0, "#b9fbff");
+    surface.addColorStop(0.22, "#63d8ff");
+    surface.addColorStop(0.56, "#3953c7");
+    surface.addColorStop(1, "#030416");
+    ctx.fillStyle = surface;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, planetRadius, 0, TAU);
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(225, 250, 255, 0.5)";
+    ctx.beginPath();
+    ctx.ellipse(centerX, centerY, ringWidth, ringHeight, ringTilt, 0, Math.PI);
+    ctx.stroke();
+    ctx.restore();
+    return;
+  }
+
   ctx.save();
 
   const shimmer = 0.5 + Math.sin(performance.now() / 1800) * 0.5;
@@ -220,21 +257,3 @@ function drawPlanet() {
 
   ctx.restore();
 }
-
-// Keeps phone movement from slowing down when the frame rate drops.
-const orbitMobileStepMode = window.matchMedia("(pointer: coarse), (max-width: 720px)").matches;
-const orbitMobileStepMax = 0.06;
-const orbitOriginalUpdateStep = update;
-let orbitLastMobileStepAt = performance.now();
-
-update = function updateWithMobileFrameStep(cappedDt) {
-  if (!orbitMobileStepMode) {
-    orbitOriginalUpdateStep(cappedDt);
-    return;
-  }
-
-  const now = performance.now();
-  const realDt = Math.min(orbitMobileStepMax, (now - orbitLastMobileStepAt) / 1000 || cappedDt);
-  orbitLastMobileStepAt = now;
-  orbitOriginalUpdateStep(realDt);
-};
