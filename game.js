@@ -20,9 +20,8 @@ const orbitPerformance = window.orbitPerformance = {
   lowSamples: 0,
 };
 
-const orbitFixedStep = 1 / 60;
-const orbitMaxFrameSeconds = 0.25;
-let orbitAccumulator = 0;
+const orbitMaxFrameSeconds = 0.12;
+const orbitMaxUpdateStep = 1 / 60;
 let orbitFpsWindowStart = performance.now();
 let orbitFpsFrames = 0;
 
@@ -590,19 +589,15 @@ function drawPlayer() {
   const blink = invulnerable > 0 ? 0.46 + Math.sin(performance.now() / 70) * 0.34 : 1;
 
   ctx.save();
-  ctx.globalCompositeOperation = orbitPerformance.lowPower ? "source-over" : "lighter";
+  ctx.globalCompositeOperation = "lighter";
   ctx.globalAlpha = blink;
 
   const tailAngle = player.angle - 0.18;
   const tail = pointOnRing(player.lane, tailAngle);
-  if (orbitPerformance.lowPower) {
-    ctx.strokeStyle = "rgba(191, 248, 255, 0.76)";
-  } else {
-    const tailGradient = ctx.createLinearGradient(tail.x, tail.y, p.x, p.y);
-    tailGradient.addColorStop(0, "rgba(76, 216, 255, 0)");
-    tailGradient.addColorStop(1, "rgba(221, 252, 255, 0.86)");
-    ctx.strokeStyle = tailGradient;
-  }
+  const tailGradient = ctx.createLinearGradient(tail.x, tail.y, p.x, p.y);
+  tailGradient.addColorStop(0, "rgba(76, 216, 255, 0)");
+  tailGradient.addColorStop(1, "rgba(221, 252, 255, 0.86)");
+  ctx.strokeStyle = tailGradient;
   ctx.lineWidth = 5;
   ctx.lineCap = "round";
   ctx.beginPath();
@@ -610,7 +605,7 @@ function drawPlayer() {
   ctx.lineTo(p.x, p.y);
   ctx.stroke();
 
-  ctx.shadowBlur = orbitPerformance.lowPower ? 0 : 26;
+  ctx.shadowBlur = 26;
   ctx.shadowColor = "#bff8ff";
   ctx.fillStyle = "#f4feff";
   ctx.beginPath();
@@ -628,13 +623,13 @@ function drawPlayer() {
 
 function drawHazards() {
   ctx.save();
-  ctx.globalCompositeOperation = orbitPerformance.lowPower ? "source-over" : "lighter";
+  ctx.globalCompositeOperation = "lighter";
 
   for (const hazard of hazards) {
     const p = pointOnRing(hazard.lane, hazard.angle);
     const wobbleSize = hazard.size + Math.sin(hazard.wobble) * 1.6;
 
-    ctx.shadowBlur = orbitPerformance.lowPower ? 0 : 18;
+    ctx.shadowBlur = 18;
     ctx.shadowColor = "rgba(255, 103, 103, 0.9)";
     ctx.fillStyle = "rgba(255, 82, 111, 0.92)";
     ctx.beginPath();
@@ -659,8 +654,8 @@ function drawBonusStar() {
   const radius = 8 + Math.sin(bonusStar.pulse) * 1.8;
 
   ctx.save();
-  ctx.globalCompositeOperation = orbitPerformance.lowPower ? "source-over" : "lighter";
-  ctx.shadowBlur = orbitPerformance.lowPower ? 0 : 22;
+  ctx.globalCompositeOperation = "lighter";
+  ctx.shadowBlur = 22;
   ctx.shadowColor = "rgba(255, 232, 138, 0.9)";
   ctx.fillStyle = "#ffe991";
 
@@ -686,11 +681,12 @@ function loop(now) {
   lastTime = now;
 
   orbitTrackPerformance(now);
-  orbitAccumulator += elapsed;
 
-  while (orbitAccumulator >= orbitFixedStep) {
-    update(orbitFixedStep);
-    orbitAccumulator -= orbitFixedStep;
+  let remaining = elapsed;
+  while (remaining > 0.000001) {
+    const step = Math.min(orbitMaxUpdateStep, remaining);
+    update(step);
+    remaining -= step;
   }
 
   draw();
@@ -729,7 +725,6 @@ document.addEventListener("gesturestart", (event) => event.preventDefault());
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
     lastTime = 0;
-    orbitAccumulator = 0;
   }
 });
 
