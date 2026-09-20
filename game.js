@@ -11,6 +11,8 @@ const resetButton = document.getElementById("reset");
 
 const TAU = Math.PI * 2;
 const lowPowerFrameInterval = 1000 / 32;
+const maxCatchupSeconds = 0.12;
+const maxUpdateStep = 0.033;
 const limitFrameRate = window.matchMedia("(pointer: coarse), (max-width: 720px)").matches;
 let ringCount = 5;
 const moveCooldownSeconds = 0.48;
@@ -26,6 +28,7 @@ let bgStars = [];
 let dust = [];
 
 let lastTime = 0;
+let lastRenderTime = 0;
 let state = "waiting";
 let score = 0;
 let lives = 3;
@@ -624,15 +627,25 @@ function drawBonusStar() {
 }
 
 function loop(now) {
-  if (limitFrameRate && now - lastTime < lowPowerFrameInterval) {
+  if (limitFrameRate && lastRenderTime && now - lastRenderTime < lowPowerFrameInterval) {
     requestAnimationFrame(loop);
     return;
   }
 
-  const dt = Math.min(0.033, (now - lastTime) / 1000 || 0);
-  lastTime = now;
+  const elapsed = lastTime
+    ? Math.min(maxCatchupSeconds, Math.max(0, (now - lastTime) / 1000))
+    : 0;
 
-  update(dt);
+  lastTime = now;
+  lastRenderTime = now;
+
+  let remaining = elapsed;
+  while (remaining > 0) {
+    const step = Math.min(maxUpdateStep, remaining);
+    update(step);
+    remaining -= step;
+  }
+
   draw();
   requestAnimationFrame(loop);
 }
