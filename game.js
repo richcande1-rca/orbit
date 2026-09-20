@@ -15,9 +15,8 @@ const moveCooldownSeconds = 0.48;
 const laneSpeedRates = [0.68, 1.08, 0.84, 1.34, 1.58, 1.76];
 
 const orbitPerformance = window.orbitPerformance = {
-  lowPower: window.matchMedia("(pointer: coarse), (max-width: 720px)").matches,
+  lowPower: true,
   fps: 60,
-  lowSamples: 0,
 };
 
 const orbitMaxFrameSeconds = 0.12;
@@ -40,7 +39,7 @@ Object.assign(orbitFpsReadout.style, {
   pointerEvents: "none",
 });
 document.body.appendChild(orbitFpsReadout);
-document.body.classList.toggle("orbit-low-power", orbitPerformance.lowPower);
+document.body.classList.add("orbit-low-power");
 
 function orbitTrackPerformance(now) {
   orbitFpsFrames += 1;
@@ -50,19 +49,7 @@ function orbitTrackPerformance(now) {
   const fps = orbitFpsFrames * 1000 / windowMs;
   orbitPerformance.fps = fps;
 
-  if (fps < 48) {
-    orbitPerformance.lowSamples += 1;
-  } else {
-    orbitPerformance.lowSamples = 0;
-  }
-
-  if (!orbitPerformance.lowPower && orbitPerformance.lowSamples >= 2) {
-    orbitPerformance.lowPower = true;
-    document.body.classList.add("orbit-low-power");
-    resize();
-  }
-
-  orbitFpsReadout.textContent = `FPS ${Math.round(fps)} · ${orbitPerformance.lowPower ? "LITE" : "FULL"}`;
+  orbitFpsReadout.textContent = `FPS ${Math.round(fps)} · LITE`;
   orbitFpsWindowStart = now;
   orbitFpsFrames = 0;
 }
