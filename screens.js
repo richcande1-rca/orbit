@@ -6,8 +6,9 @@ const orbitLevelHoldMs = 700;
 const orbitLayerCardMs = 950;
 const orbitSpecialHoldMs = 1350;
 const orbitRewardHoldMs = 1100;
-const orbitLowPowerMode = window.matchMedia("(pointer: coarse), (max-width: 720px)").matches;
-const orbitDprCap = orbitLowPowerMode ? 1 : 2;
+function orbitUseLowPowerMode() {
+  return !!window.orbitPerformance?.lowPower;
+}
 const orbitRewardCards = {
   4: {
     title: "ORBIT BREACH",
@@ -81,27 +82,27 @@ startGame = function startGameWithOrbitDifficulty() {
 };
 
 makeBackground = function makeBackgroundPerformance() {
-  const starDensity = orbitLowPowerMode ? 8600 : 3900;
-  const minStars = orbitLowPowerMode ? 38 : 96;
-  const maxStars = orbitLowPowerMode ? 88 : 285;
+  const starDensity = orbitUseLowPowerMode() ? 8600 : 3900;
+  const minStars = orbitUseLowPowerMode() ? 38 : 96;
+  const maxStars = orbitUseLowPowerMode() ? 88 : 285;
   const starCount = Math.floor(clamp((width * height) / starDensity, minStars, maxStars));
 
   bgStars = Array.from({ length: starCount }, () => ({
     x: Math.random() * width,
     y: Math.random() * height,
-    r: rand(0.45, orbitLowPowerMode ? 1.25 : 1.9),
+    r: rand(0.45, orbitUseLowPowerMode() ? 1.25 : 1.9),
     twinkle: rand(0, TAU),
-    speed: rand(0.52, orbitLowPowerMode ? 1.45 : 1.75),
+    speed: rand(0.52, orbitUseLowPowerMode() ? 1.45 : 1.75),
     sparkle: rand(0.86, 1.18),
   }));
 
-  const dustCount = orbitLowPowerMode ? 4 : 26;
+  const dustCount = orbitUseLowPowerMode() ? 4 : 26;
   dust = Array.from({ length: dustCount }, () => ({
     x: Math.random() * width,
     y: Math.random() * height,
-    r: rand(24, orbitLowPowerMode ? 54 : 90),
+    r: rand(24, orbitUseLowPowerMode() ? 54 : 90),
     drift: rand(-0.06, 0.06),
-    alpha: rand(0.018, orbitLowPowerMode ? 0.026 : 0.055),
+    alpha: rand(0.018, orbitUseLowPowerMode() ? 0.026 : 0.055),
   }));
 };
 
@@ -114,7 +115,7 @@ drawBackground = function drawBackgroundTwinkleTune() {
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, width, height);
 
-  const maxAlpha = orbitLowPowerMode ? 0.82 : 0.94;
+  const maxAlpha = orbitUseLowPowerMode() ? 0.82 : 0.94;
 
   for (const star of bgStars) {
     const shimmer = 0.5 + Math.sin(star.twinkle) * 0.5;
@@ -130,7 +131,8 @@ drawBackground = function drawBackgroundTwinkleTune() {
 };
 
 resize = function resizeOrbitPerformance() {
-  const dpr = Math.max(1, Math.min(orbitDprCap, window.devicePixelRatio || 1));
+  const dprCap = orbitUseLowPowerMode() ? 1 : 2;
+  const dpr = Math.max(1, Math.min(dprCap, window.devicePixelRatio || 1));
   width = Math.floor(window.innerWidth);
   height = Math.floor(window.innerHeight);
   canvas.width = Math.floor(width * dpr);
@@ -153,13 +155,13 @@ resize = function resizeOrbitPerformance() {
 
 const orbitOriginalDrawNebula = drawNebula;
 drawNebula = function drawNebulaPerformance() {
-  if (orbitLowPowerMode) return;
+  if (orbitUseLowPowerMode()) return;
   orbitOriginalDrawNebula();
 };
 
 const orbitOriginalDrawOrbitGlow = drawOrbitGlow;
 drawOrbitGlow = function drawOrbitGlowPerformance() {
-  if (!orbitLowPowerMode) {
+  if (!orbitUseLowPowerMode()) {
     orbitOriginalDrawOrbitGlow();
     return;
   }

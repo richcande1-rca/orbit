@@ -14,6 +14,60 @@ let ringCount = 5;
 const moveCooldownSeconds = 0.48;
 const laneSpeedRates = [0.68, 1.08, 0.84, 1.34, 1.58, 1.76];
 
+const orbitPerformance = window.orbitPerformance = {
+  lowPower: window.matchMedia("(pointer: coarse), (max-width: 720px)").matches,
+  fps: 60,
+  lowSamples: 0,
+};
+
+const orbitFixedStep = 1 / 60;
+const orbitMaxFrameSeconds = 0.25;
+let orbitAccumulator = 0;
+let orbitFpsWindowStart = performance.now();
+let orbitFpsFrames = 0;
+
+const orbitFpsReadout = document.createElement("div");
+orbitFpsReadout.setAttribute("aria-label", "Orbit frame rate");
+Object.assign(orbitFpsReadout.style, {
+  position: "fixed",
+  right: "10px",
+  bottom: "10px",
+  zIndex: "1000",
+  padding: "3px 6px",
+  borderRadius: "6px",
+  background: "rgba(0, 0, 0, 0.58)",
+  color: "rgba(225, 248, 255, 0.78)",
+  font: "700 10px/1.2 monospace",
+  pointerEvents: "none",
+});
+document.body.appendChild(orbitFpsReadout);
+document.body.classList.toggle("orbit-low-power", orbitPerformance.lowPower);
+
+function orbitTrackPerformance(now) {
+  orbitFpsFrames += 1;
+  const windowMs = now - orbitFpsWindowStart;
+  if (windowMs < 500) return;
+
+  const fps = orbitFpsFrames * 1000 / windowMs;
+  orbitPerformance.fps = fps;
+
+  if (fps < 48) {
+    orbitPerformance.lowSamples += 1;
+  } else {
+    orbitPerformance.lowSamples = 0;
+  }
+
+  if (!orbitPerformance.lowPower && orbitPerformance.lowSamples >= 2) {
+    orbitPerformance.lowPower = true;
+    document.body.classList.add("orbit-low-power");
+    resize();
+  }
+
+  orbitFpsReadout.textContent = `FPS ${Math.round(fps)} · ${orbitPerformance.lowPower ? "LITE" : "FULL"}`;
+  orbitFpsWindowStart = now;
+  orbitFpsFrames = 0;
+}
+
 let width = 0;
 let height = 0;
 let centerX = 0;
@@ -77,7 +131,7 @@ function applyRingCountForLevel() {
 }
 
 function resize() {
-  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  const dpr = orbitPerformance.lowPower ? 1 : Math.max(1, Math.min(2, window.devicePixelRatio || 1));
   width = Math.floor(window.innerWidth);
   height = Math.floor(window.innerHeight);
   canvas.width = Math.floor(width * dpr);
@@ -536,15 +590,19 @@ function drawPlayer() {
   const blink = invulnerable > 0 ? 0.46 + Math.sin(performance.now() / 70) * 0.34 : 1;
 
   ctx.save();
-  ctx.globalCompositeOperation = "lighter";
+  ctx.globalCompositeOperation = orbitPerformance.lowPower ? "source-over" : "lighter";
   ctx.globalAlpha = blink;
 
   const tailAngle = player.angle - 0.18;
   const tail = pointOnRing(player.lane, tailAngle);
-  const tailGradient = ctx.createLinearGradient(tail.x, tail.y, p.x, p.y);
-  tailGradient.addColorStop(0, "rgba(76, 216, 255, 0)");
-  tailGradient.addColorStop(1, "rgba(221, 252, 255, 0.86)");
-  ctx.strokeStyle = tailGradient;
+  if (orbitPerformance.lowPower) {
+    ctx.strokeStyle = "rgba(191, 248, 255, 0.76)";
+  } else {
+    const tailGradient = ctx.createLinearGradient(tail.x, tail.y, p.x, p.y);
+    tailGradient.addColorStop(0, "rgba(76, 216, 255, 0)");
+    tailGradient.addColorStop(1, "rgba(221, 252, 255, 0.86)");
+    ctx.strokeStyle = tailGradient;
+  }
   ctx.lineWidth = 5;
   ctx.lineCap = "round";
   ctx.beginPath();
@@ -552,7 +610,7 @@ function drawPlayer() {
   ctx.lineTo(p.x, p.y);
   ctx.stroke();
 
-  ctx.shadowBlur = 26;
+  ctx.shadowBlur = orbitPerformance.lowPower ? 0 : 26;
   ctx.shadowColor = "#bff8ff";
   ctx.fillStyle = "#f4feff";
   ctx.beginPath();
@@ -570,13 +628,13 @@ function drawPlayer() {
 
 function drawHazards() {
   ctx.save();
-  ctx.globalCompositeOperation = "lighter";
+  ctx.globalCompositeOperation = orbitPerformance.lowPower ? "source-over" : "lighter";
 
   for (const hazard of hazards) {
     const p = pointOnRing(hazard.lane, hazard.angle);
     const wobbleSize = hazard.size + Math.sin(hazard.wobble) * 1.6;
 
-    ctx.shadowBlur = 18;
+    ctx.shadowBlur = orbitPerformance.lowPower ? 0 : 18;
     ctx.shadowColor = "rgba(255, 103, 103, 0.9)";
     ctx.fillStyle = "rgba(255, 82, 111, 0.92)";
     ctx.beginPath();
@@ -601,8 +659,8 @@ function drawBonusStar() {
   const radius = 8 + Math.sin(bonusStar.pulse) * 1.8;
 
   ctx.save();
-  ctx.globalCompositeOperation = "lighter";
-  ctx.shadowBlur = 22;
+  ctx.globalCompositeOperation = orbitPerformance.lowPower ? "source-over" : "lighter";
+  ctx.shadowBlur = orbitPerformance.lowPower ? 0 : 22;
   ctx.shadowColor = "rgba(255, 232, 138, 0.9)";
   ctx.fillStyle = "#ffe991";
 
@@ -622,10 +680,19 @@ function drawBonusStar() {
 }
 
 function loop(now) {
-  const dt = Math.min(0.033, (now - lastTime) / 1000 || 0);
+  const elapsed = lastTime
+    ? Math.min(orbitMaxFrameSeconds, Math.max(0, (now - lastTime) / 1000))
+    : 0;
   lastTime = now;
 
-  update(dt);
+  orbitTrackPerformance(now);
+  orbitAccumulator += elapsed;
+
+  while (orbitAccumulator >= orbitFixedStep) {
+    update(orbitFixedStep);
+    orbitAccumulator -= orbitFixedStep;
+  }
+
   draw();
   requestAnimationFrame(loop);
 }
@@ -659,6 +726,12 @@ window.addEventListener("keydown", (event) => {
 });
 
 document.addEventListener("gesturestart", (event) => event.preventDefault());
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    lastTime = 0;
+    orbitAccumulator = 0;
+  }
+});
 
 resize();
 makeHazards();
