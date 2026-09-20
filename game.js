@@ -10,6 +10,8 @@ const pauseButton = document.getElementById("pause");
 const resetButton = document.getElementById("reset");
 
 const TAU = Math.PI * 2;
+const lowPowerFrameInterval = 1000 / 32;
+const limitFrameRate = window.matchMedia("(pointer: coarse), (max-width: 720px)").matches;
 let ringCount = 5;
 const moveCooldownSeconds = 0.48;
 const laneSpeedRates = [0.68, 1.08, 0.84, 1.34, 1.58, 1.76];
@@ -622,6 +624,11 @@ function drawBonusStar() {
 }
 
 function loop(now) {
+  if (limitFrameRate && now - lastTime < lowPowerFrameInterval) {
+    requestAnimationFrame(loop);
+    return;
+  }
+
   const dt = Math.min(0.033, (now - lastTime) / 1000 || 0);
   lastTime = now;
 
