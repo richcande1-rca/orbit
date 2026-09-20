@@ -98,6 +98,98 @@ const player = {
 let hazards = [];
 let bonusStar = null;
 
+let orbitLiteSprites = null;
+
+function createOrbitLiteSprite(size, paint) {
+  const sprite = document.createElement("canvas");
+  sprite.width = size;
+  sprite.height = size;
+  const spriteCtx = sprite.getContext("2d");
+  paint(spriteCtx, size / 2, size / 2, size);
+  return sprite;
+}
+
+function ensureOrbitLiteSprites() {
+  if (orbitLiteSprites) return orbitLiteSprites;
+
+  orbitLiteSprites = {
+    nova: createOrbitLiteSprite(64, (sctx, cx, cy) => {
+      sctx.fillStyle = "rgba(71, 211, 255, 0.12)";
+      sctx.beginPath();
+      sctx.arc(cx, cy, 20, 0, TAU);
+      sctx.fill();
+
+      sctx.fillStyle = "rgba(117, 229, 255, 0.28)";
+      sctx.beginPath();
+      sctx.arc(cx, cy, 13, 0, TAU);
+      sctx.fill();
+
+      sctx.fillStyle = "#f4feff";
+      sctx.beginPath();
+      sctx.arc(cx, cy, 8, 0, TAU);
+      sctx.fill();
+
+      sctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+      sctx.beginPath();
+      sctx.arc(cx - 2.2, cy - 2.2, 2.4, 0, TAU);
+      sctx.fill();
+    }),
+    hazard: createOrbitLiteSprite(72, (sctx, cx, cy) => {
+      sctx.fillStyle = "rgba(255, 56, 112, 0.12)";
+      sctx.beginPath();
+      sctx.arc(cx, cy, 27, 0, TAU);
+      sctx.fill();
+
+      sctx.fillStyle = "rgba(255, 66, 118, 0.28)";
+      sctx.beginPath();
+      sctx.arc(cx, cy, 19, 0, TAU);
+      sctx.fill();
+
+      sctx.fillStyle = "rgba(255, 82, 111, 0.96)";
+      sctx.beginPath();
+      sctx.arc(cx, cy, 14, 0, TAU);
+      sctx.fill();
+
+      sctx.fillStyle = "rgba(255, 208, 218, 0.75)";
+      sctx.beginPath();
+      sctx.arc(cx - 4, cy - 4.2, 3.4, 0, TAU);
+      sctx.fill();
+    }),
+    star: createOrbitLiteSprite(56, (sctx, cx, cy) => {
+      sctx.fillStyle = "rgba(255, 233, 145, 0.14)";
+      sctx.beginPath();
+      sctx.arc(cx, cy, 18, 0, TAU);
+      sctx.fill();
+
+      sctx.fillStyle = "rgba(255, 238, 157, 0.3)";
+      sctx.beginPath();
+      sctx.arc(cx, cy, 12, 0, TAU);
+      sctx.fill();
+
+      sctx.fillStyle = "#ffe991";
+      sctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + (i / 10) * TAU;
+        const r = i % 2 === 0 ? 8 : 3.5;
+        const x = cx + Math.cos(a) * r;
+        const y = cy + Math.sin(a) * r;
+        if (i === 0) sctx.moveTo(x, y);
+        else sctx.lineTo(x, y);
+      }
+      sctx.closePath();
+      sctx.fill();
+
+      sctx.fillStyle = "#fff8d8";
+      sctx.beginPath();
+      sctx.arc(cx, cy, 2, 0, TAU);
+      sctx.fill();
+    }),
+  };
+
+  return orbitLiteSprites;
+}
+
+
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
@@ -589,6 +681,7 @@ function drawPlayer() {
   const blink = invulnerable > 0 ? 0.46 + Math.sin(performance.now() / 70) * 0.34 : 1;
 
   if (orbitPerformance.lowPower) {
+    const sprites = ensureOrbitLiteSprites();
     const tailAngle = player.angle - 0.18;
     const tail = pointOnRing(player.lane, tailAngle);
 
@@ -597,40 +690,21 @@ function drawPlayer() {
     ctx.globalCompositeOperation = "source-over";
     ctx.lineCap = "round";
 
-    ctx.strokeStyle = "rgba(80, 210, 255, 0.22)";
-    ctx.lineWidth = 9;
+    ctx.strokeStyle = "rgba(80, 210, 255, 0.2)";
+    ctx.lineWidth = 7;
     ctx.beginPath();
     ctx.moveTo(tail.x, tail.y);
     ctx.lineTo(p.x, p.y);
     ctx.stroke();
 
-    ctx.strokeStyle = "rgba(197, 247, 255, 0.82)";
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(197, 247, 255, 0.78)";
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(tail.x, tail.y);
     ctx.lineTo(p.x, p.y);
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(71, 211, 255, 0.12)";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, player.radius * 2.4, 0, TAU);
-    ctx.fill();
-
-    ctx.fillStyle = "rgba(117, 229, 255, 0.28)";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, player.radius * 1.55, 0, TAU);
-    ctx.fill();
-
-    ctx.fillStyle = "#f4feff";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, player.radius, 0, TAU);
-    ctx.fill();
-
-    ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
-    ctx.beginPath();
-    ctx.arc(p.x - player.radius * 0.28, p.y - player.radius * 0.28, player.radius * 0.28, 0, TAU);
-    ctx.fill();
-
+    ctx.drawImage(sprites.nova, p.x - 32, p.y - 32, 64, 64);
     ctx.restore();
     return;
   }
@@ -670,38 +744,16 @@ function drawPlayer() {
 
 function drawHazards() {
   if (orbitPerformance.lowPower) {
+    const sprites = ensureOrbitLiteSprites();
     ctx.save();
     ctx.globalCompositeOperation = "source-over";
 
     for (const hazard of hazards) {
       const p = pointOnRing(hazard.lane, hazard.angle);
       const wobbleSize = hazard.size + Math.sin(hazard.wobble) * 1.6;
-
-      ctx.fillStyle = "rgba(255, 56, 112, 0.12)";
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, wobbleSize * 1.9, 0, TAU);
-      ctx.fill();
-
-      ctx.fillStyle = "rgba(255, 66, 118, 0.28)";
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, wobbleSize * 1.38, 0, TAU);
-      ctx.fill();
-
-      ctx.fillStyle = "rgba(255, 82, 111, 0.96)";
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, wobbleSize, 0, TAU);
-      ctx.fill();
-
-      ctx.fillStyle = "rgba(255, 208, 218, 0.75)";
-      ctx.beginPath();
-      ctx.arc(
-        p.x - wobbleSize * 0.28,
-        p.y - wobbleSize * 0.3,
-        Math.max(2, wobbleSize * 0.24),
-        0,
-        TAU
-      );
-      ctx.fill();
+      const scale = wobbleSize / 14;
+      const size = 72 * scale;
+      ctx.drawImage(sprites.hazard, p.x - size / 2, p.y - size / 2, size, size);
     }
 
     ctx.restore();
@@ -740,38 +792,10 @@ function drawBonusStar() {
   const radius = 8 + Math.sin(bonusStar.pulse) * 1.8;
 
   if (orbitPerformance.lowPower) {
-    ctx.save();
-    ctx.globalCompositeOperation = "source-over";
-
-    ctx.fillStyle = "rgba(255, 233, 145, 0.14)";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, radius * 2.1, 0, TAU);
-    ctx.fill();
-
-    ctx.fillStyle = "rgba(255, 238, 157, 0.3)";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, radius * 1.45, 0, TAU);
-    ctx.fill();
-
-    ctx.fillStyle = "#ffe991";
-    ctx.beginPath();
-    for (let i = 0; i < 10; i++) {
-      const a = -Math.PI / 2 + (i / 10) * TAU;
-      const r = i % 2 === 0 ? radius : radius * 0.43;
-      const x = p.x + Math.cos(a) * r;
-      const y = p.y + Math.sin(a) * r;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = "#fff8d8";
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, Math.max(1.8, radius * 0.22), 0, TAU);
-    ctx.fill();
-
-    ctx.restore();
+    const sprites = ensureOrbitLiteSprites();
+    const scale = radius / 8;
+    const size = 56 * scale;
+    ctx.drawImage(sprites.star, p.x - size / 2, p.y - size / 2, size, size);
     return;
   }
 
