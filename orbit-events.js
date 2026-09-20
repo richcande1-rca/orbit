@@ -229,6 +229,45 @@
 
     const tailX = comet.x - comet.dx * cometTrailLength;
     const tailY = comet.y - comet.dy * cometTrailLength;
+    const lowPower = !!window.orbitPerformance?.lowPower;
+
+    if (lowPower) {
+      ctx.save();
+      ctx.globalCompositeOperation = "source-over";
+      ctx.lineCap = "round";
+
+      ctx.strokeStyle = "rgba(255, 106, 39, 0.22)";
+      ctx.lineWidth = 14;
+      ctx.beginPath();
+      ctx.moveTo(tailX, tailY);
+      ctx.lineTo(comet.x, comet.y);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(255, 173, 74, 0.7)";
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(tailX, tailY);
+      ctx.lineTo(comet.x, comet.y);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255, 125, 42, 0.18)";
+      ctx.beginPath();
+      ctx.arc(comet.x, comet.y, 12, 0, TAU);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255, 205, 128, 0.6)";
+      ctx.beginPath();
+      ctx.arc(comet.x, comet.y, 8, 0, TAU);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255, 246, 211, 0.98)";
+      ctx.beginPath();
+      ctx.arc(comet.x, comet.y, 4.5, 0, TAU);
+      ctx.fill();
+
+      ctx.restore();
+      return;
+    }
 
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
@@ -242,7 +281,7 @@
     ctx.shadowBlur = 24;
     ctx.shadowColor = "rgba(255, 124, 38, 0.95)";
     ctx.strokeStyle = streak;
-    ctx.lineWidth = window.orbitPerformance?.lowPower ? 8 : 11;
+    ctx.lineWidth = 11;
     ctx.beginPath();
     ctx.moveTo(tailX, tailY);
     ctx.lineTo(comet.x, comet.y);
@@ -251,7 +290,7 @@
     ctx.shadowBlur = 18;
     ctx.fillStyle = "rgba(255, 241, 203, 0.96)";
     ctx.beginPath();
-    ctx.arc(comet.x, comet.y, window.orbitPerformance?.lowPower ? 5 : 7, 0, TAU);
+    ctx.arc(comet.x, comet.y, 7, 0, TAU);
     ctx.fill();
 
     ctx.restore();
