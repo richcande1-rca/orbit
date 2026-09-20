@@ -539,15 +539,19 @@ function drawPlayer() {
   const blink = invulnerable > 0 ? 0.46 + Math.sin(performance.now() / 70) * 0.34 : 1;
 
   ctx.save();
-  ctx.globalCompositeOperation = "lighter";
+  ctx.globalCompositeOperation = lowPowerMode ? "source-over" : "lighter";
   ctx.globalAlpha = blink;
 
   const tailAngle = player.angle - 0.18;
   const tail = pointOnRing(player.lane, tailAngle);
-  const tailGradient = ctx.createLinearGradient(tail.x, tail.y, p.x, p.y);
-  tailGradient.addColorStop(0, "rgba(76, 216, 255, 0)");
-  tailGradient.addColorStop(1, "rgba(221, 252, 255, 0.86)");
-  ctx.strokeStyle = tailGradient;
+  if (lowPowerMode) {
+    ctx.strokeStyle = "rgba(191, 248, 255, 0.76)";
+  } else {
+    const tailGradient = ctx.createLinearGradient(tail.x, tail.y, p.x, p.y);
+    tailGradient.addColorStop(0, "rgba(76, 216, 255, 0)");
+    tailGradient.addColorStop(1, "rgba(221, 252, 255, 0.86)");
+    ctx.strokeStyle = tailGradient;
+  }
   ctx.lineWidth = 5;
   ctx.lineCap = "round";
   ctx.beginPath();
@@ -555,7 +559,7 @@ function drawPlayer() {
   ctx.lineTo(p.x, p.y);
   ctx.stroke();
 
-  ctx.shadowBlur = 26;
+  ctx.shadowBlur = lowPowerMode ? 0 : 26;
   ctx.shadowColor = "#bff8ff";
   ctx.fillStyle = "#f4feff";
   ctx.beginPath();
@@ -573,13 +577,13 @@ function drawPlayer() {
 
 function drawHazards() {
   ctx.save();
-  ctx.globalCompositeOperation = "lighter";
+  ctx.globalCompositeOperation = lowPowerMode ? "source-over" : "lighter";
 
   for (const hazard of hazards) {
     const p = pointOnRing(hazard.lane, hazard.angle);
     const wobbleSize = hazard.size + Math.sin(hazard.wobble) * 1.6;
 
-    ctx.shadowBlur = 18;
+    ctx.shadowBlur = lowPowerMode ? 0 : 18;
     ctx.shadowColor = "rgba(255, 103, 103, 0.9)";
     ctx.fillStyle = "rgba(255, 82, 111, 0.92)";
     ctx.beginPath();
@@ -604,8 +608,8 @@ function drawBonusStar() {
   const radius = 8 + Math.sin(bonusStar.pulse) * 1.8;
 
   ctx.save();
-  ctx.globalCompositeOperation = "lighter";
-  ctx.shadowBlur = 22;
+  ctx.globalCompositeOperation = lowPowerMode ? "source-over" : "lighter";
+  ctx.shadowBlur = lowPowerMode ? 0 : 22;
   ctx.shadowColor = "rgba(255, 232, 138, 0.9)";
   ctx.fillStyle = "#ffe991";
 

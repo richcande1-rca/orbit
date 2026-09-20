@@ -239,7 +239,7 @@
     streak.addColorStop(0.52, "rgba(255, 132, 36, 0.72)");
     streak.addColorStop(1, "rgba(255, 238, 180, 1)");
 
-    ctx.shadowBlur = 24;
+    ctx.shadowBlur = orbitLowPowerMode ? 0 : 24;
     ctx.shadowColor = "rgba(255, 124, 38, 0.95)";
     ctx.strokeStyle = streak;
     ctx.lineWidth = orbitLowPowerMode ? 8 : 11;
@@ -248,7 +248,7 @@
     ctx.lineTo(comet.x, comet.y);
     ctx.stroke();
 
-    ctx.shadowBlur = 18;
+    ctx.shadowBlur = orbitLowPowerMode ? 0 : 18;
     ctx.fillStyle = "rgba(255, 241, 203, 0.96)";
     ctx.beginPath();
     ctx.arc(comet.x, comet.y, orbitLowPowerMode ? 5 : 7, 0, TAU);

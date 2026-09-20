@@ -35,6 +35,42 @@ let orbitInputUnlockAt = 0;
 let orbitLayerHideAt = 0;
 let orbitDifficulty = "normal";
 let orbitPostRewardJump = false;
+let orbitBackgroundCache = null;
+
+function rebuildOrbitBackgroundCache() {
+  if (!orbitLowPowerMode || width <= 0 || height <= 0) {
+    orbitBackgroundCache = null;
+    return;
+  }
+
+  const cacheCanvas = document.createElement("canvas");
+  cacheCanvas.width = Math.max(1, Math.floor(width));
+  cacheCanvas.height = Math.max(1, Math.floor(height));
+  const cacheCtx = cacheCanvas.getContext("2d");
+  if (!cacheCtx) {
+    orbitBackgroundCache = null;
+    return;
+  }
+
+  const gradient = cacheCtx.createRadialGradient(centerX, centerY, 10, centerX, centerY, Math.max(width, height));
+  gradient.addColorStop(0, "#14275d");
+  gradient.addColorStop(0.28, "#081331");
+  gradient.addColorStop(0.62, "#030713");
+  gradient.addColorStop(1, "#000106");
+  cacheCtx.fillStyle = gradient;
+  cacheCtx.fillRect(0, 0, width, height);
+
+  for (const star of bgStars) {
+    cacheCtx.globalAlpha = 0.48;
+    cacheCtx.beginPath();
+    cacheCtx.arc(star.x, star.y, star.r, 0, TAU);
+    cacheCtx.fillStyle = "#ffffff";
+    cacheCtx.fill();
+  }
+
+  cacheCtx.globalAlpha = 1;
+  orbitBackgroundCache = cacheCanvas;
+}
 
 function orbitNow() {
   return performance.now();
@@ -103,9 +139,17 @@ makeBackground = function makeBackgroundPerformance() {
     drift: rand(-0.06, 0.06),
     alpha: rand(0.018, orbitLowPowerMode ? 0.026 : 0.055),
   }));
+
+  rebuildOrbitBackgroundCache();
 };
 
 drawBackground = function drawBackgroundTwinkleTune() {
+  if (orbitLowPowerMode && orbitBackgroundCache) {
+    ctx.globalAlpha = 1;
+    ctx.drawImage(orbitBackgroundCache, 0, 0, width, height);
+    return;
+  }
+
   const gradient = ctx.createRadialGradient(centerX, centerY, 10, centerX, centerY, Math.max(width, height));
   gradient.addColorStop(0, "#14275d");
   gradient.addColorStop(0.28, "#081331");
