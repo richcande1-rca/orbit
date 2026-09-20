@@ -6,10 +6,16 @@
   const cometHitWidth = 16;
   const cometStrikeDamage = 3;
   const cometKnockbackRings = 2;
+  const cometTwinRun = 10;
+  const cometTwinGapSeconds = 0.65;
 
   let comet = null;
   let cometLiteSprite = null;
   let cometCooldown = rand(4.5, 7);
+  let cometTwinPending = false;
+  let cometTwinSecondQueued = false;
+  let cometTwinTriggeredRun = 0;
+  let cometObservedLevel = level;
 
   function getCometLiteSprite() {
     if (cometLiteSprite) return cometLiteSprite;
@@ -94,6 +100,7 @@
   }
 
   function randomCometCooldown() {
+    if (level === cometTwinRun) return rand(1.8, 2.8);
     if (level <= 3) return rand(4.5, 7);
     if (level <= 5) return rand(7, 10.5);
     if (level <= 7) return rand(6, 9);
@@ -103,7 +110,24 @@
   function clearComet(resetTimer = true) {
     comet = null;
     cometWarningDelay = 0;
+    cometTwinPending = false;
+    cometTwinSecondQueued = false;
     if (resetTimer) cometCooldown = randomCometCooldown();
+  }
+
+  function finishCometPass() {
+    comet = null;
+    cometWarningDelay = 0;
+
+    if (level === cometTwinRun && cometTwinPending) {
+      cometTwinPending = false;
+      cometTwinSecondQueued = true;
+      cometCooldown = cometTwinGapSeconds;
+      return;
+    }
+
+    cometTwinSecondQueued = false;
+    cometCooldown = randomCometCooldown();
   }
 
   function cometEligible() {
@@ -112,6 +136,20 @@
 
   function triggerCometWarning() {
     cometWarningDelay = cometWarningMs / 1000;
+
+    if (level === cometTwinRun && cometTwinTriggeredRun !== level) {
+      cometTwinTriggeredRun = level;
+      cometTwinPending = true;
+      updateHud("TWIN COMETS DETECTED!");
+      return;
+    }
+
+    if (level === cometTwinRun && cometTwinSecondQueued) {
+      cometTwinSecondQueued = false;
+      updateHud("SECOND COMET INBOUND!");
+      return;
+    }
+
     updateHud("COMET DETECTED INBOUND!");
   }
 
@@ -218,6 +256,16 @@
   }
 
   function updateCometSystem(dt) {
+    if (cometObservedLevel !== level) {
+      cometObservedLevel = level;
+      cometTwinPending = false;
+      cometTwinSecondQueued = false;
+
+      if (level === cometTwinRun && cometTwinTriggeredRun !== level) {
+        cometCooldown = Math.min(cometCooldown, 1.8);
+      }
+    }
+
     if (cometFlash > 0) {
       cometFlash = Math.max(0, cometFlash - dt);
     }
@@ -249,7 +297,7 @@
       }
 
       if (comet.age > comet.life) {
-        clearComet();
+        finishCometPass();
       }
 
       return;
@@ -354,6 +402,8 @@
   const originalStartGame = startGame;
   startGame = function startGameWithCometReset() {
     originalStartGame();
+    cometTwinTriggeredRun = 0;
+    cometObservedLevel = level;
     clearComet();
     instructionEl.classList.remove("screen-gameover");
   };
