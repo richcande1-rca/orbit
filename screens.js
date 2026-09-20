@@ -29,6 +29,7 @@ const orbitDifficultyModes = {
   hard: { label: "Hard", moveCooldown: 0.58, postRewardGrace: 0.04 },
 };
 const orbitCounterflowRun = 5;
+const orbitCrosscurrentRun = 6;
 const orbitSafeCorridorRun = 8;
 const orbitTwinCometRun = 10;
 const orbitSafeCorridorMs = 4200;
@@ -272,6 +273,12 @@ makeHazards = function makeHazardsWithRunIdentity() {
   for (let lane = 1; lane < ringCount; lane++) {
     if (lane === orbitSafeLane) continue;
 
+    if (level === orbitCrosscurrentRun) {
+      hazards.push(createOrbitHazard(lane, speedScale, false));
+      hazards.push(createOrbitHazard(lane, speedScale, true));
+      continue;
+    }
+
     const count = 1 + (level > 3 && Math.random() < 0.52 ? 1 : 0);
     for (let i = 0; i < count; i++) {
       hazards.push(createOrbitHazard(lane, speedScale, reverseFlow));
@@ -366,6 +373,13 @@ function orbitLayerForRun(run) {
     return {
       title: "COUNTERFLOW",
       line: "Debris has reversed direction.",
+    };
+  }
+
+  if (run === orbitCrosscurrentRun) {
+    return {
+      title: "CROSSCURRENT",
+      line: "Traffic has split. Watch both directions.",
     };
   }
 
