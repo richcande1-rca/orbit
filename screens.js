@@ -31,8 +31,11 @@ const orbitDifficultyModes = {
 const orbitCounterflowRun = 5;
 const orbitCrosscurrentRun = 6;
 const orbitSafeCorridorRun = 8;
+const orbitPhaseShiftRun = 9;
 const orbitTwinCometRun = 10;
 const orbitSafeCorridorMs = 4200;
+const orbitPhaseHiddenMs = 900;
+const orbitPhaseGapMs = 2400;
 
 let orbitRewardSeen = new Set();
 let orbitCompleteShown = false;
@@ -44,6 +47,9 @@ let orbitPostRewardJump = false;
 let orbitLiteBackgroundCache = null;
 let orbitSafeLane = -1;
 let orbitSafeLaneUntil = 0;
+let orbitPhaseLane = -1;
+let orbitPhaseLaneUntil = 0;
+let orbitNextPhaseAt = 0;
 
 function rebuildOrbitLiteBackgroundCache() {
   if (!orbitUseLowPowerMode() || width <= 0 || height <= 0) {
@@ -222,20 +228,28 @@ drawOrbitGlow = function drawOrbitGlowPerformance() {
 
   ctx.save();
 
+  const now = orbitNow();
   const safeLaneActive =
     level === orbitSafeCorridorRun &&
     orbitSafeLane >= 1 &&
-    orbitNow() < orbitSafeLaneUntil;
+    now < orbitSafeLaneUntil;
+  const phaseLaneActive =
+    level === orbitPhaseShiftRun &&
+    orbitPhaseLane >= 1 &&
+    now < orbitPhaseLaneUntil;
 
   rings.forEach((radius, lane) => {
     const active = lane === player.lane;
     const safe = safeLaneActive && lane === orbitSafeLane;
-    ctx.lineWidth = safe ? 2.8 : active ? 2.4 : 1.1;
-    ctx.strokeStyle = safe
-      ? "rgba(128, 255, 190, 0.82)"
-      : active
-        ? "rgba(141, 236, 255, 0.72)"
-        : "rgba(125, 195, 255, 0.18)";
+    const phased = phaseLaneActive && lane === orbitPhaseLane;
+    ctx.lineWidth = phased ? 0.8 : safe ? 2.8 : active ? 2.4 : 1.1;
+    ctx.strokeStyle = phased
+      ? "rgba(125, 195, 255, 0.025)"
+      : safe
+        ? "rgba(128, 255, 190, 0.82)"
+        : active
+          ? "rgba(141, 236, 255, 0.72)"
+          : "rgba(125, 195, 255, 0.18)";
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, TAU);
     ctx.stroke();
@@ -264,6 +278,9 @@ makeHazards = function makeHazardsWithRunIdentity() {
   hazards = [];
   orbitSafeLane = -1;
   orbitSafeLaneUntil = 0;
+  orbitPhaseLane = -1;
+  orbitPhaseLaneUntil = 0;
+  orbitNextPhaseAt = level === orbitPhaseShiftRun ? orbitNow() + 1600 : 0;
 
   if (level === orbitSafeCorridorRun) {
     orbitSafeLane = Math.floor(rand(1, ringCount));
@@ -297,6 +314,32 @@ function closeOrbitSafeCorridorIfReady() {
   const speedScale = 1 + (level - 1) * 0.13;
   hazards.push(createOrbitHazard(lane, speedScale));
   updateHud("SAFE CORRIDOR CLOSED.");
+}
+
+function updateOrbitPhaseShift() {
+  if (level !== orbitPhaseShiftRun || state !== "running") {
+    orbitPhaseLane = -1;
+    orbitPhaseLaneUntil = 0;
+    return;
+  }
+
+  const now = orbitNow();
+
+  if (orbitPhaseLane >= 1) {
+    if (now < orbitPhaseLaneUntil) return;
+
+    orbitPhaseLane = -1;
+    orbitPhaseLaneUntil = 0;
+    orbitNextPhaseAt = now + orbitPhaseGapMs;
+    updateHud("ORBIT RESTORED.");
+    return;
+  }
+
+  if (now < orbitNextPhaseAt || ringCount <= 1) return;
+
+  orbitPhaseLane = Math.floor(rand(1, ringCount));
+  orbitPhaseLaneUntil = now + orbitPhaseHiddenMs;
+  updateHud("PHASE SHIFT — ORBIT LINE LOST.");
 }
 
 movePlayer = function movePlayerWithBalance(direction) {
@@ -387,6 +430,13 @@ function orbitLayerForRun(run) {
     return {
       title: "SAFE CORRIDOR",
       line: "One orbit is clear. It will not stay clear.",
+    };
+  }
+
+  if (run === orbitPhaseShiftRun) {
+    return {
+      title: "PHASE SHIFT",
+      line: "One orbit will fade. Track your position.",
     };
   }
 
@@ -554,6 +604,7 @@ function watchOrbitProgress() {
   }
 
   closeOrbitSafeCorridorIfReady();
+  updateOrbitPhaseShift();
   hideOrbitLayerCardIfReady();
   requestAnimationFrame(watchOrbitProgress);
 }
