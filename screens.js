@@ -28,6 +28,10 @@ const orbitDifficultyModes = {
   normal: { label: "Normal", moveCooldown: orbitMoveCooldownSeconds, postRewardGrace: 0.08 },
   hard: { label: "Hard", moveCooldown: 0.58, postRewardGrace: 0.04 },
 };
+const orbitCounterflowRun = 5;
+const orbitSafeCorridorRun = 8;
+const orbitTwinCometRun = 10;
+const orbitSafeCorridorMs = 4200;
 
 let orbitRewardSeen = new Set();
 let orbitCompleteShown = false;
@@ -37,6 +41,8 @@ let orbitLayerHideAt = 0;
 let orbitDifficulty = "normal";
 let orbitPostRewardJump = false;
 let orbitLiteBackgroundCache = null;
+let orbitSafeLane = -1;
+let orbitSafeLaneUntil = 0;
 
 function rebuildOrbitLiteBackgroundCache() {
   if (!orbitUseLowPowerMode() || width <= 0 || height <= 0) {
@@ -215,10 +221,20 @@ drawOrbitGlow = function drawOrbitGlowPerformance() {
 
   ctx.save();
 
+  const safeLaneActive =
+    level === orbitSafeCorridorRun &&
+    orbitSafeLane >= 1 &&
+    orbitNow() < orbitSafeLaneUntil;
+
   rings.forEach((radius, lane) => {
     const active = lane === player.lane;
-    ctx.lineWidth = active ? 2.4 : 1.1;
-    ctx.strokeStyle = active ? "rgba(141, 236, 255, 0.72)" : "rgba(125, 195, 255, 0.18)";
+    const safe = safeLaneActive && lane === orbitSafeLane;
+    ctx.lineWidth = safe ? 2.8 : active ? 2.4 : 1.1;
+    ctx.strokeStyle = safe
+      ? "rgba(128, 255, 190, 0.82)"
+      : active
+        ? "rgba(141, 236, 255, 0.72)"
+        : "rgba(125, 195, 255, 0.18)";
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, TAU);
     ctx.stroke();
@@ -227,26 +243,54 @@ drawOrbitGlow = function drawOrbitGlowPerformance() {
   ctx.restore();
 };
 
-makeHazards = function makeHazardsWithSafeInnerRing() {
+function createOrbitHazard(lane, speedScale, reverseFlow = false) {
+  const laneRate = laneSpeedRates[lane] || 1;
+  let direction = lane % 2 === 0 ? 1 : -1;
+  if (reverseFlow) direction *= -1;
+
+  return {
+    lane,
+    angle: rand(0, TAU),
+    speed: direction * rand(0.54, 0.92) * laneRate * speedScale,
+    size: rand(10, 15),
+    wobble: rand(0, TAU),
+  };
+}
+
+makeHazards = function makeHazardsWithRunIdentity() {
   const speedScale = 1 + (level - 1) * 0.13;
+  const reverseFlow = level === orbitCounterflowRun;
   hazards = [];
+  orbitSafeLane = -1;
+  orbitSafeLaneUntil = 0;
+
+  if (level === orbitSafeCorridorRun) {
+    orbitSafeLane = Math.floor(rand(1, ringCount));
+    orbitSafeLaneUntil = orbitNow() + orbitSafeCorridorMs;
+  }
 
   for (let lane = 1; lane < ringCount; lane++) {
-    const count = 1 + (level > 3 && Math.random() < 0.52 ? 1 : 0);
-    const laneRate = laneSpeedRates[lane] || 1;
+    if (lane === orbitSafeLane) continue;
 
+    const count = 1 + (level > 3 && Math.random() < 0.52 ? 1 : 0);
     for (let i = 0; i < count; i++) {
-      const direction = lane % 2 === 0 ? 1 : -1;
-      hazards.push({
-        lane,
-        angle: rand(0, TAU),
-        speed: direction * rand(0.54, 0.92) * laneRate * speedScale,
-        size: rand(10, 15),
-        wobble: rand(0, TAU),
-      });
+      hazards.push(createOrbitHazard(lane, speedScale, reverseFlow));
     }
   }
 };
+
+function closeOrbitSafeCorridorIfReady() {
+  if (level !== orbitSafeCorridorRun || orbitSafeLane < 1) return;
+  if (orbitNow() < orbitSafeLaneUntil) return;
+
+  const lane = orbitSafeLane;
+  orbitSafeLane = -1;
+  orbitSafeLaneUntil = 0;
+
+  const speedScale = 1 + (level - 1) * 0.13;
+  hazards.push(createOrbitHazard(lane, speedScale));
+  updateHud("SAFE CORRIDOR CLOSED.");
+}
 
 movePlayer = function movePlayerWithBalance(direction) {
   if (moveCooldown > 0) return;
@@ -318,6 +362,27 @@ function setOrbitScreen(title, lines, tone = "normal") {
 }
 
 function orbitLayerForRun(run) {
+  if (run === orbitCounterflowRun) {
+    return {
+      title: "COUNTERFLOW",
+      line: "Debris has reversed direction.",
+    };
+  }
+
+  if (run === orbitSafeCorridorRun) {
+    return {
+      title: "SAFE CORRIDOR",
+      line: "One orbit is clear. It will not stay clear.",
+    };
+  }
+
+  if (run === orbitTwinCometRun) {
+    return {
+      title: "TWIN COMETS",
+      line: "Two inbound passes. Read the warning.",
+    };
+  }
+
   if (run <= 2) {
     return {
       title: "LOW ORBIT",
@@ -474,6 +539,7 @@ function watchOrbitProgress() {
     showOrbitRewardForLevel(level);
   }
 
+  closeOrbitSafeCorridorIfReady();
   hideOrbitLayerCardIfReady();
   requestAnimationFrame(watchOrbitProgress);
 }
