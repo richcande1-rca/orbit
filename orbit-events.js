@@ -8,7 +8,52 @@
   const cometKnockbackRings = 2;
 
   let comet = null;
+  let cometLiteSprite = null;
   let cometCooldown = rand(4.5, 7);
+
+  function getCometLiteSprite() {
+    if (cometLiteSprite) return cometLiteSprite;
+
+    const sprite = document.createElement("canvas");
+    sprite.width = cometTrailLength + 44;
+    sprite.height = 40;
+    const sctx = sprite.getContext("2d");
+    const headX = cometTrailLength + 18;
+    const cy = sprite.height / 2;
+
+    sctx.lineCap = "round";
+    sctx.strokeStyle = "rgba(255, 106, 39, 0.22)";
+    sctx.lineWidth = 14;
+    sctx.beginPath();
+    sctx.moveTo(8, cy);
+    sctx.lineTo(headX, cy);
+    sctx.stroke();
+
+    sctx.strokeStyle = "rgba(255, 173, 74, 0.7)";
+    sctx.lineWidth = 6;
+    sctx.beginPath();
+    sctx.moveTo(8, cy);
+    sctx.lineTo(headX, cy);
+    sctx.stroke();
+
+    sctx.fillStyle = "rgba(255, 125, 42, 0.18)";
+    sctx.beginPath();
+    sctx.arc(headX, cy, 12, 0, TAU);
+    sctx.fill();
+
+    sctx.fillStyle = "rgba(255, 205, 128, 0.6)";
+    sctx.beginPath();
+    sctx.arc(headX, cy, 8, 0, TAU);
+    sctx.fill();
+
+    sctx.fillStyle = "rgba(255, 246, 211, 0.98)";
+    sctx.beginPath();
+    sctx.arc(headX, cy, 4.5, 0, TAU);
+    sctx.fill();
+
+    cometLiteSprite = sprite;
+    return cometLiteSprite;
+  }
   let cometWarningDelay = 0;
   let cometFlash = 0;
 
@@ -232,39 +277,14 @@
     const lowPower = !!window.orbitPerformance?.lowPower;
 
     if (lowPower) {
+      const sprite = getCometLiteSprite();
+      const headX = cometTrailLength + 18;
+      const angle = Math.atan2(comet.dy, comet.dx);
+
       ctx.save();
-      ctx.globalCompositeOperation = "source-over";
-      ctx.lineCap = "round";
-
-      ctx.strokeStyle = "rgba(255, 106, 39, 0.22)";
-      ctx.lineWidth = 14;
-      ctx.beginPath();
-      ctx.moveTo(tailX, tailY);
-      ctx.lineTo(comet.x, comet.y);
-      ctx.stroke();
-
-      ctx.strokeStyle = "rgba(255, 173, 74, 0.7)";
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(tailX, tailY);
-      ctx.lineTo(comet.x, comet.y);
-      ctx.stroke();
-
-      ctx.fillStyle = "rgba(255, 125, 42, 0.18)";
-      ctx.beginPath();
-      ctx.arc(comet.x, comet.y, 12, 0, TAU);
-      ctx.fill();
-
-      ctx.fillStyle = "rgba(255, 205, 128, 0.6)";
-      ctx.beginPath();
-      ctx.arc(comet.x, comet.y, 8, 0, TAU);
-      ctx.fill();
-
-      ctx.fillStyle = "rgba(255, 246, 211, 0.98)";
-      ctx.beginPath();
-      ctx.arc(comet.x, comet.y, 4.5, 0, TAU);
-      ctx.fill();
-
+      ctx.translate(comet.x, comet.y);
+      ctx.rotate(angle);
+      ctx.drawImage(sprite, -headX, -sprite.height / 2);
       ctx.restore();
       return;
     }
