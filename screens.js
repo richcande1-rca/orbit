@@ -36,6 +36,42 @@ let orbitInputUnlockAt = 0;
 let orbitLayerHideAt = 0;
 let orbitDifficulty = "normal";
 let orbitPostRewardJump = false;
+let orbitLiteBackgroundCache = null;
+
+function rebuildOrbitLiteBackgroundCache() {
+  if (!orbitUseLowPowerMode() || width <= 0 || height <= 0) {
+    orbitLiteBackgroundCache = null;
+    return;
+  }
+
+  const cacheCanvas = document.createElement("canvas");
+  cacheCanvas.width = Math.max(1, Math.floor(width));
+  cacheCanvas.height = Math.max(1, Math.floor(height));
+  const cacheCtx = cacheCanvas.getContext("2d");
+  if (!cacheCtx) {
+    orbitLiteBackgroundCache = null;
+    return;
+  }
+
+  const gradient = cacheCtx.createRadialGradient(centerX, centerY, 10, centerX, centerY, Math.max(width, height));
+  gradient.addColorStop(0, "#14275d");
+  gradient.addColorStop(0.28, "#081331");
+  gradient.addColorStop(0.62, "#030713");
+  gradient.addColorStop(1, "#000106");
+  cacheCtx.fillStyle = gradient;
+  cacheCtx.fillRect(0, 0, width, height);
+
+  cacheCtx.fillStyle = "#ffffff";
+  for (const star of bgStars) {
+    cacheCtx.globalAlpha = 0.46;
+    cacheCtx.beginPath();
+    cacheCtx.arc(star.x, star.y, star.r, 0, TAU);
+    cacheCtx.fill();
+  }
+  cacheCtx.globalAlpha = 1;
+
+  orbitLiteBackgroundCache = cacheCanvas;
+}
 
 function orbitNow() {
   return performance.now();
@@ -104,9 +140,17 @@ makeBackground = function makeBackgroundPerformance() {
     drift: rand(-0.06, 0.06),
     alpha: rand(0.018, orbitUseLowPowerMode() ? 0.026 : 0.055),
   }));
+
+  rebuildOrbitLiteBackgroundCache();
 };
 
 drawBackground = function drawBackgroundTwinkleTune() {
+  if (orbitUseLowPowerMode() && orbitLiteBackgroundCache) {
+    ctx.globalAlpha = 1;
+    ctx.drawImage(orbitLiteBackgroundCache, 0, 0, width, height);
+    return;
+  }
+
   const gradient = ctx.createRadialGradient(centerX, centerY, 10, centerX, centerY, Math.max(width, height));
   gradient.addColorStop(0, "#14275d");
   gradient.addColorStop(0.28, "#081331");
