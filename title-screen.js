@@ -3,7 +3,7 @@
   titleScreen.className = "title-screen";
   titleScreen.setAttribute("aria-label", "Opening title screen");
 
-  const orbitBuildStamp = "Orbit build 2026.09.20.9";
+  const orbitBuildStamp = "Orbit build 2026.09.20.10";
 
   const skipButton = document.createElement("button");
   skipButton.className = "title-skip";
@@ -85,8 +85,17 @@
 
     for (const button of difficultyButtons) {
       const active = button.dataset.difficulty === current;
-      button.disabled = active;
+      button.disabled = false;
       button.setAttribute("aria-pressed", active ? "true" : "false");
+      button.style.borderColor = active ? "rgba(151, 235, 255, 0.9)" : "rgba(151, 235, 255, 0.34)";
+      button.style.background = active
+        ? "linear-gradient(135deg, rgba(46, 126, 174, 0.9), rgba(78, 53, 154, 0.9))"
+        : "rgba(2, 8, 22, 0.42)";
+      button.style.color = active ? "#ffffff" : "#eef7ff";
+      button.style.boxShadow = active
+        ? "0 0 14px rgba(83, 213, 255, 0.34), 0 0 20px rgba(83, 213, 255, 0.18) inset"
+        : "none";
+      button.style.transform = active ? "translateY(-1px)" : "none";
     }
   }
 
@@ -135,12 +144,18 @@
         cursor: "pointer",
       });
 
-      button.addEventListener("pointerdown", (event) => {
+      const chooseDifficulty = (event) => {
         event.preventDefault();
         event.stopPropagation();
         window.orbitSetDifficulty(value);
         updateDifficultyButtons();
-      }, { passive: false });
+      };
+
+      button.addEventListener("pointerdown", chooseDifficulty, { passive: false });
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
 
       row.appendChild(button);
       difficultyButtons.push(button);
@@ -279,6 +294,7 @@
   skipButton.addEventListener("pointerdown", skipTitle, { passive: false });
   card.addEventListener("keydown", handleTitleKey);
   window.addEventListener("keydown", handleTitleKey, { capture: true });
+  window.addEventListener("orbitdifficultychange", updateDifficultyButtons);
 
   document.body.classList.add("title-screen-active");
   setGameChromeVisible(false);
