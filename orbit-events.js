@@ -242,7 +242,7 @@
     ctx.shadowBlur = 24;
     ctx.shadowColor = "rgba(255, 124, 38, 0.95)";
     ctx.strokeStyle = streak;
-    ctx.lineWidth = orbitLowPowerMode ? 8 : 11;
+    ctx.lineWidth = window.orbitPerformance?.lowPower ? 8 : 11;
     ctx.beginPath();
     ctx.moveTo(tailX, tailY);
     ctx.lineTo(comet.x, comet.y);
@@ -251,7 +251,7 @@
     ctx.shadowBlur = 18;
     ctx.fillStyle = "rgba(255, 241, 203, 0.96)";
     ctx.beginPath();
-    ctx.arc(comet.x, comet.y, orbitLowPowerMode ? 5 : 7, 0, TAU);
+    ctx.arc(comet.x, comet.y, window.orbitPerformance?.lowPower ? 5 : 7, 0, TAU);
     ctx.fill();
 
     ctx.restore();
