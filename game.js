@@ -10,10 +10,9 @@ const pauseButton = document.getElementById("pause");
 const resetButton = document.getElementById("reset");
 
 const TAU = Math.PI * 2;
-const lowPowerFrameInterval = 1000 / 32;
 const maxCatchupSeconds = 0.12;
 const maxUpdateStep = 0.033;
-const limitFrameRate = window.matchMedia("(pointer: coarse), (max-width: 720px)").matches;
+const lowPowerMode = window.matchMedia("(pointer: coarse), (max-width: 720px)").matches;
 let ringCount = 5;
 const moveCooldownSeconds = 0.48;
 const laneSpeedRates = [0.68, 1.08, 0.84, 1.34, 1.58, 1.76];
@@ -28,7 +27,6 @@ let bgStars = [];
 let dust = [];
 
 let lastTime = 0;
-let lastRenderTime = 0;
 let state = "waiting";
 let score = 0;
 let lives = 3;
@@ -82,7 +80,7 @@ function applyRingCountForLevel() {
 }
 
 function resize() {
-  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  const dpr = lowPowerMode ? 1 : Math.max(1, Math.min(2, window.devicePixelRatio || 1));
   width = Math.floor(window.innerWidth);
   height = Math.floor(window.innerHeight);
   canvas.width = Math.floor(width * dpr);
@@ -627,17 +625,11 @@ function drawBonusStar() {
 }
 
 function loop(now) {
-  if (limitFrameRate && lastRenderTime && now - lastRenderTime < lowPowerFrameInterval) {
-    requestAnimationFrame(loop);
-    return;
-  }
-
   const elapsed = lastTime
     ? Math.min(maxCatchupSeconds, Math.max(0, (now - lastTime) / 1000))
     : 0;
 
   lastTime = now;
-  lastRenderTime = now;
 
   let remaining = elapsed;
   while (remaining > 0) {
