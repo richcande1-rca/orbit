@@ -588,6 +588,53 @@ function drawPlayer() {
   const p = pointOnRing(player.lane, player.angle);
   const blink = invulnerable > 0 ? 0.46 + Math.sin(performance.now() / 70) * 0.34 : 1;
 
+  if (orbitPerformance.lowPower) {
+    const tailAngle = player.angle - 0.18;
+    const tail = pointOnRing(player.lane, tailAngle);
+
+    ctx.save();
+    ctx.globalAlpha = blink;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.lineCap = "round";
+
+    ctx.strokeStyle = "rgba(80, 210, 255, 0.22)";
+    ctx.lineWidth = 9;
+    ctx.beginPath();
+    ctx.moveTo(tail.x, tail.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(197, 247, 255, 0.82)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(tail.x, tail.y);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(71, 211, 255, 0.12)";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, player.radius * 2.4, 0, TAU);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(117, 229, 255, 0.28)";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, player.radius * 1.55, 0, TAU);
+    ctx.fill();
+
+    ctx.fillStyle = "#f4feff";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, player.radius, 0, TAU);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.92)";
+    ctx.beginPath();
+    ctx.arc(p.x - player.radius * 0.28, p.y - player.radius * 0.28, player.radius * 0.28, 0, TAU);
+    ctx.fill();
+
+    ctx.restore();
+    return;
+  }
+
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
   ctx.globalAlpha = blink;
@@ -622,6 +669,45 @@ function drawPlayer() {
 }
 
 function drawHazards() {
+  if (orbitPerformance.lowPower) {
+    ctx.save();
+    ctx.globalCompositeOperation = "source-over";
+
+    for (const hazard of hazards) {
+      const p = pointOnRing(hazard.lane, hazard.angle);
+      const wobbleSize = hazard.size + Math.sin(hazard.wobble) * 1.6;
+
+      ctx.fillStyle = "rgba(255, 56, 112, 0.12)";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, wobbleSize * 1.9, 0, TAU);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255, 66, 118, 0.28)";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, wobbleSize * 1.38, 0, TAU);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255, 82, 111, 0.96)";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, wobbleSize, 0, TAU);
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255, 208, 218, 0.75)";
+      ctx.beginPath();
+      ctx.arc(
+        p.x - wobbleSize * 0.28,
+        p.y - wobbleSize * 0.3,
+        Math.max(2, wobbleSize * 0.24),
+        0,
+        TAU
+      );
+      ctx.fill();
+    }
+
+    ctx.restore();
+    return;
+  }
+
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
 
@@ -652,6 +738,42 @@ function drawBonusStar() {
 
   const p = pointOnRing(bonusStar.lane, bonusStar.angle);
   const radius = 8 + Math.sin(bonusStar.pulse) * 1.8;
+
+  if (orbitPerformance.lowPower) {
+    ctx.save();
+    ctx.globalCompositeOperation = "source-over";
+
+    ctx.fillStyle = "rgba(255, 233, 145, 0.14)";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, radius * 2.1, 0, TAU);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(255, 238, 157, 0.3)";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, radius * 1.45, 0, TAU);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffe991";
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i / 10) * TAU;
+      const r = i % 2 === 0 ? radius : radius * 0.43;
+      const x = p.x + Math.cos(a) * r;
+      const y = p.y + Math.sin(a) * r;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = "#fff8d8";
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(1.8, radius * 0.22), 0, TAU);
+    ctx.fill();
+
+    ctx.restore();
+    return;
+  }
 
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
