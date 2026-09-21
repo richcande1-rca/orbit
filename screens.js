@@ -42,6 +42,9 @@ const orbitFirstLightTextAtMs = 900;
 const orbitBloomRun = 2;
 const orbitBloomDurationMs = 1450;
 const orbitBloomTextAtMs = 930;
+const orbitGravityLensRun = 3;
+const orbitGravityLensDurationMs = 1500;
+const orbitGravityLensTextAtMs = 980;
 
 let orbitRewardSeen = new Set();
 let orbitCompleteShown = false;
@@ -67,6 +70,11 @@ let orbitBloomStartedAt = 0;
 let orbitBloomTextShown = false;
 let orbitBloomFrozenHazards = [];
 let orbitBloomFrozenBonus = null;
+let orbitGravityLensActive = false;
+let orbitGravityLensStartedAt = 0;
+let orbitGravityLensTextShown = false;
+let orbitGravityLensFrozenHazards = [];
+let orbitGravityLensFrozenBonus = null;
 
 function rebuildOrbitLiteBackgroundCache() {
   if (!orbitUseLowPowerMode() || width <= 0 || height <= 0) {
@@ -148,6 +156,7 @@ const orbitOriginalStartGame = startGame;
 startGame = function startGameWithOrbitDifficulty() {
   cancelOrbitFirstLight();
   cancelOrbitBloom();
+  cancelOrbitGravityLens();
   orbitPostRewardJump = false;
   orbitOriginalStartGame();
 };
@@ -240,6 +249,11 @@ drawNebula = function drawNebulaPerformance() {
 
 const orbitOriginalDrawOrbitGlow = drawOrbitGlow;
 drawOrbitGlow = function drawOrbitGlowPerformance() {
+  if (orbitGravityLensActive) {
+    drawOrbitGravityLensRings();
+    return;
+  }
+
   if (orbitBloomActive) {
     drawOrbitBloomRings();
     return;
@@ -407,6 +421,8 @@ movePlayer = function movePlayerWithBalance(direction) {
       beginOrbitFirstLight();
     } else if (level === orbitBloomRun) {
       beginOrbitBloom();
+    } else if (level === orbitGravityLensRun) {
+      beginOrbitGravityLens();
     } else {
       advanceOrbitToNextRun();
     }
@@ -807,11 +823,210 @@ function drawOrbitBloomOverlay() {
   ctx.restore();
 }
 
+function restoreOrbitGravityLensMotion() {
+  for (const frozen of orbitGravityLensFrozenHazards) {
+    if (frozen.hazard) frozen.hazard.speed = frozen.speed;
+  }
+  orbitGravityLensFrozenHazards = [];
+
+  if (orbitGravityLensFrozenBonus?.star) {
+    orbitGravityLensFrozenBonus.star.speed = orbitGravityLensFrozenBonus.speed;
+  }
+  orbitGravityLensFrozenBonus = null;
+}
+
+function cancelOrbitGravityLens() {
+  if (!orbitGravityLensActive) return;
+  restoreOrbitGravityLensMotion();
+  orbitGravityLensActive = false;
+  orbitGravityLensStartedAt = 0;
+  orbitGravityLensTextShown = false;
+}
+
+function beginOrbitGravityLens() {
+  orbitGravityLensActive = true;
+  orbitGravityLensStartedAt = orbitNow();
+  orbitGravityLensTextShown = false;
+  orbitLayerHideAt = 0;
+  player.lane = Math.max(0, ringCount - 1);
+  invulnerable = Math.max(invulnerable, 1.6);
+  moveCooldown = 0;
+  state = "stageevent";
+
+  orbitGravityLensFrozenHazards = hazards.map((hazard) => {
+    const frozen = { hazard, speed: hazard.speed };
+    hazard.speed = 0;
+    return frozen;
+  });
+
+  orbitGravityLensFrozenBonus = bonusStar
+    ? { star: bonusStar, speed: bonusStar.speed }
+    : null;
+  if (bonusStar) bonusStar.speed = 0;
+
+  instructionEl.classList.add("hidden");
+  holdOrbitInput(orbitGravityLensDurationMs + 120);
+  updateHud("");
+  updateControlButtons();
+}
+
+function finishOrbitGravityLens() {
+  if (!orbitGravityLensActive) return;
+
+  restoreOrbitGravityLensMotion();
+  orbitGravityLensActive = false;
+  orbitGravityLensStartedAt = 0;
+  orbitGravityLensTextShown = false;
+  instructionEl.classList.add("hidden");
+  state = "running";
+  advanceOrbitToNextRun();
+  updateControlButtons();
+}
+
+function updateOrbitGravityLens() {
+  if (!orbitGravityLensActive) return;
+
+  const elapsed = orbitNow() - orbitGravityLensStartedAt;
+
+  if (!orbitGravityLensTextShown && elapsed >= orbitGravityLensTextAtMs) {
+    orbitGravityLensTextShown = true;
+    setOrbitScreen(
+      "GRAVITY LENS",
+      ["SPACETIME DISTORTION DETECTED"],
+      "special"
+    );
+  }
+
+  if (elapsed >= orbitGravityLensDurationMs) {
+    finishOrbitGravityLens();
+  }
+}
+
+function orbitGravityLensStrength(elapsed) {
+  if (elapsed <= 180) {
+    const p = clamp(elapsed / 180, 0, 1);
+    return p * p * (3 - 2 * p);
+  }
+
+  if (elapsed < 760) {
+    return 1;
+  }
+
+  const release = clamp((elapsed - 760) / 230, 0, 1);
+  const eased = release * release * (3 - 2 * release);
+  return 1 - eased;
+}
+
+function drawOrbitGravityLensRings() {
+  const elapsed = orbitNow() - orbitGravityLensStartedAt;
+  const strength = orbitGravityLensStrength(elapsed);
+
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.scale(1 + strength * 0.055, 1 - strength * 0.14);
+  ctx.lineCap = "round";
+
+  rings.forEach((radius, lane) => {
+    const active = lane === player.lane;
+    ctx.strokeStyle = active
+      ? `rgba(205, 248, 255, ${0.78 + strength * 0.18})`
+      : `rgba(134, 210, 255, ${0.24 + strength * 0.34})`;
+    ctx.lineWidth = active ? 3.4 : 1.5 + strength * 0.8;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, TAU);
+    ctx.stroke();
+  });
+
+  ctx.restore();
+}
+
+function drawOrbitGravityLensOverlay() {
+  if (!orbitGravityLensActive) return;
+
+  const elapsed = orbitNow() - orbitGravityLensStartedAt;
+  const strength = orbitGravityLensStrength(elapsed);
+  const nova = pointOnRing(player.lane, player.angle);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.lineCap = "round";
+
+  // Pull the visible starfield inward. The lines use the existing star
+  // positions, so the effect stays deterministic and cheap in LITE mode.
+  if (strength > 0.02) {
+    ctx.strokeStyle = "#dffbff";
+    ctx.lineWidth = 1;
+    for (const star of bgStars) {
+      const dx = centerX - star.x;
+      const dy = centerY - star.y;
+      const length = Math.hypot(dx, dy) || 1;
+      const pull = Math.min(18, length * 0.055) * strength;
+      const ux = dx / length;
+      const uy = dy / length;
+
+      ctx.globalAlpha = strength * 0.28;
+      ctx.beginPath();
+      ctx.moveTo(star.x, star.y);
+      ctx.lineTo(star.x + ux * pull, star.y + uy * pull);
+      ctx.stroke();
+    }
+  }
+
+  // Hard blue-white lens halo around the planet.
+  const halo = clamp(1 - Math.abs(elapsed - 560) / 620, 0, 1);
+  if (halo > 0) {
+    ctx.globalAlpha = halo * 0.18;
+    ctx.fillStyle = "#bdefff";
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, planetRadius * 2.25, 0, TAU);
+    ctx.fill();
+
+    ctx.globalAlpha = halo * 0.72;
+    ctx.strokeStyle = "#eefeff";
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, planetRadius * 1.32, 0, TAU);
+    ctx.stroke();
+
+    ctx.globalAlpha = halo * 0.7;
+    ctx.strokeStyle = "#d9fbff";
+    ctx.lineWidth = 2.1;
+    ctx.beginPath();
+    ctx.arc(nova.x, nova.y, player.radius * 2.25, 0, TAU);
+    ctx.stroke();
+  }
+
+  // The snap-back launches a clean ripple through the restored geometry.
+  const snapProgress = clamp((elapsed - 900) / 430, 0, 1);
+  if (snapProgress > 0 && snapProgress < 1) {
+    const snapAlpha = Math.sin(snapProgress * Math.PI);
+    const outerRadius = rings.length
+      ? rings[rings.length - 1]
+      : Math.min(width, height) * 0.4;
+    const rippleRadius =
+      planetRadius * 1.4 + snapProgress * outerRadius * 1.18;
+
+    ctx.globalAlpha = snapAlpha * 0.72;
+    ctx.strokeStyle = "#efffff";
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, rippleRadius, 0, TAU);
+    ctx.stroke();
+
+    ctx.globalAlpha = snapAlpha * 0.24;
+    ctx.fillStyle = "#dff8ff";
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  ctx.restore();
+}
+
 const orbitDrawBeforeStageEvents = draw;
 draw = function drawWithOrbitStageEvents() {
   orbitDrawBeforeStageEvents();
   drawOrbitFirstLight();
   drawOrbitBloomOverlay();
+  drawOrbitGravityLensOverlay();
 };
 
 function orbitLayerForRun(run) {
@@ -978,6 +1193,7 @@ function showOrbitCompleteScreen() {
 function watchOrbitProgress() {
   updateOrbitFirstLight();
   updateOrbitBloom();
+  updateOrbitGravityLens();
 
   if (state === "running" && level === 1 && score === 0) {
     orbitRewardSeen = new Set();
