@@ -39,6 +39,9 @@ const orbitPhaseGapMs = 2400;
 const orbitFirstLightRun = 1;
 const orbitFirstLightDurationMs = 1450;
 const orbitFirstLightTextAtMs = 900;
+const orbitBloomRun = 2;
+const orbitBloomDurationMs = 1450;
+const orbitBloomTextAtMs = 930;
 
 let orbitRewardSeen = new Set();
 let orbitCompleteShown = false;
@@ -59,6 +62,11 @@ let orbitFirstLightTextShown = false;
 let orbitFirstLightFrozenHazards = [];
 let orbitFirstLightFrozenBonus = null;
 let orbitFirstLightStreaks = [];
+let orbitBloomActive = false;
+let orbitBloomStartedAt = 0;
+let orbitBloomTextShown = false;
+let orbitBloomFrozenHazards = [];
+let orbitBloomFrozenBonus = null;
 
 function rebuildOrbitLiteBackgroundCache() {
   if (!orbitUseLowPowerMode() || width <= 0 || height <= 0) {
@@ -139,6 +147,7 @@ function stopOrbitInput(event) {
 const orbitOriginalStartGame = startGame;
 startGame = function startGameWithOrbitDifficulty() {
   cancelOrbitFirstLight();
+  cancelOrbitBloom();
   orbitPostRewardJump = false;
   orbitOriginalStartGame();
 };
@@ -231,6 +240,11 @@ drawNebula = function drawNebulaPerformance() {
 
 const orbitOriginalDrawOrbitGlow = drawOrbitGlow;
 drawOrbitGlow = function drawOrbitGlowPerformance() {
+  if (orbitBloomActive) {
+    drawOrbitBloomRings();
+    return;
+  }
+
   if (!orbitUseLowPowerMode()) {
     orbitOriginalDrawOrbitGlow();
     return;
@@ -391,6 +405,8 @@ movePlayer = function movePlayerWithBalance(direction) {
 
     if (level === orbitFirstLightRun) {
       beginOrbitFirstLight();
+    } else if (level === orbitBloomRun) {
+      beginOrbitBloom();
     } else {
       advanceOrbitToNextRun();
     }
@@ -604,10 +620,198 @@ function drawOrbitFirstLight() {
   ctx.restore();
 }
 
+function restoreOrbitBloomMotion() {
+  for (const frozen of orbitBloomFrozenHazards) {
+    if (frozen.hazard) frozen.hazard.speed = frozen.speed;
+  }
+  orbitBloomFrozenHazards = [];
+
+  if (orbitBloomFrozenBonus?.star) {
+    orbitBloomFrozenBonus.star.speed = orbitBloomFrozenBonus.speed;
+  }
+  orbitBloomFrozenBonus = null;
+}
+
+function cancelOrbitBloom() {
+  if (!orbitBloomActive) return;
+  restoreOrbitBloomMotion();
+  orbitBloomActive = false;
+  orbitBloomStartedAt = 0;
+  orbitBloomTextShown = false;
+}
+
+function beginOrbitBloom() {
+  orbitBloomActive = true;
+  orbitBloomStartedAt = orbitNow();
+  orbitBloomTextShown = false;
+  orbitLayerHideAt = 0;
+  player.lane = Math.max(0, ringCount - 1);
+  invulnerable = Math.max(invulnerable, 1.5);
+  moveCooldown = 0;
+  state = "stageevent";
+
+  orbitBloomFrozenHazards = hazards.map((hazard) => {
+    const frozen = { hazard, speed: hazard.speed };
+    hazard.speed = 0;
+    return frozen;
+  });
+
+  orbitBloomFrozenBonus = bonusStar
+    ? { star: bonusStar, speed: bonusStar.speed }
+    : null;
+  if (bonusStar) bonusStar.speed = 0;
+
+  instructionEl.classList.add("hidden");
+  holdOrbitInput(orbitBloomDurationMs + 120);
+  updateHud("");
+  updateControlButtons();
+}
+
+function finishOrbitBloom() {
+  if (!orbitBloomActive) return;
+
+  restoreOrbitBloomMotion();
+  orbitBloomActive = false;
+  orbitBloomStartedAt = 0;
+  orbitBloomTextShown = false;
+  instructionEl.classList.add("hidden");
+  state = "running";
+  advanceOrbitToNextRun();
+  updateControlButtons();
+}
+
+function updateOrbitBloom() {
+  if (!orbitBloomActive) return;
+
+  const elapsed = orbitNow() - orbitBloomStartedAt;
+
+  if (!orbitBloomTextShown && elapsed >= orbitBloomTextAtMs) {
+    orbitBloomTextShown = true;
+    setOrbitScreen("ORBITAL BLOOM", ["TRAJECTORY EXPANDING"], "special");
+  }
+
+  if (elapsed >= orbitBloomDurationMs) {
+    finishOrbitBloom();
+  }
+}
+
+function orbitBloomOpenAmount(elapsed) {
+  if (elapsed <= 160) {
+    const p = clamp(elapsed / 160, 0, 1);
+    return p * p * (3 - 2 * p);
+  }
+
+  if (elapsed < 820) {
+    const breathe = Math.sin((elapsed - 160) / 660 * Math.PI);
+    return 0.9 + breathe * 0.1;
+  }
+
+  const close = clamp((elapsed - 820) / 190, 0, 1);
+  const eased = close * close * (3 - 2 * close);
+  return 1 - eased;
+}
+
+function drawOrbitBloomRings() {
+  const elapsed = orbitNow() - orbitBloomStartedAt;
+  const open = orbitBloomOpenAmount(elapsed);
+  const segmentCount = 6;
+  const segmentSpan = TAU / segmentCount;
+  const gap = 0.115 * open;
+
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.lineCap = "round";
+
+  rings.forEach((radius, lane) => {
+    const direction = lane % 2 === 0 ? 1 : -1;
+    const rotation = direction * 0.18 * open;
+    const active = lane === player.lane;
+
+    ctx.strokeStyle = lane % 2 === 0
+      ? "rgba(153, 231, 255, 0.88)"
+      : "rgba(183, 142, 255, 0.86)";
+    ctx.lineWidth = active ? 3.6 : 2.2;
+
+    if (open < 0.025) {
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, TAU);
+      ctx.stroke();
+      return;
+    }
+
+    for (let segment = 0; segment < segmentCount; segment += 1) {
+      const start = rotation + segment * segmentSpan + gap * 0.5;
+      const end = rotation + (segment + 1) * segmentSpan - gap * 0.5;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, start, end);
+      ctx.stroke();
+    }
+  });
+
+  ctx.restore();
+}
+
+function drawOrbitBloomOverlay() {
+  if (!orbitBloomActive) return;
+
+  const elapsed = orbitNow() - orbitBloomStartedAt;
+  const open = orbitBloomOpenAmount(elapsed);
+  const planetStrength = clamp(1 - Math.abs(elapsed - 620) / 650, 0, 1);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+
+  if (planetStrength > 0) {
+    ctx.globalAlpha = planetStrength * 0.24;
+    ctx.fillStyle = "#9b72ff";
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, planetRadius * (1.7 + open * 0.35), 0, TAU);
+    ctx.fill();
+
+    ctx.globalAlpha = planetStrength * 0.34;
+    ctx.fillStyle = "#7e9cff";
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, planetRadius * 1.18, 0, TAU);
+    ctx.fill();
+
+    ctx.globalAlpha = planetStrength * 0.28;
+    ctx.fillStyle = "#e8e2ff";
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, planetRadius * 0.72, 0, TAU);
+    ctx.fill();
+  }
+
+  const shimmerProgress = clamp((elapsed - 820) / 500, 0, 1);
+  if (shimmerProgress > 0 && shimmerProgress < 1) {
+    const shimmerAlpha = Math.sin(shimmerProgress * Math.PI);
+    const outerRadius = rings.length
+      ? rings[rings.length - 1]
+      : Math.min(width, height) * 0.4;
+    const baseRadius = planetRadius * 1.8 + shimmerProgress * outerRadius * 1.2;
+
+    ctx.globalAlpha = shimmerAlpha * 0.34;
+    ctx.strokeStyle = "#d8cfff";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, baseRadius, 0, TAU);
+    ctx.stroke();
+
+    ctx.globalAlpha = shimmerAlpha * 0.18;
+    ctx.strokeStyle = "#8fe8ff";
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, baseRadius * 0.84, 0, TAU);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
 const orbitDrawBeforeStageEvents = draw;
 draw = function drawWithOrbitStageEvents() {
   orbitDrawBeforeStageEvents();
   drawOrbitFirstLight();
+  drawOrbitBloomOverlay();
 };
 
 function orbitLayerForRun(run) {
@@ -773,6 +977,7 @@ function showOrbitCompleteScreen() {
 
 function watchOrbitProgress() {
   updateOrbitFirstLight();
+  updateOrbitBloom();
 
   if (state === "running" && level === 1 && score === 0) {
     orbitRewardSeen = new Set();
