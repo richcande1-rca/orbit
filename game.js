@@ -504,7 +504,7 @@ function checkBonusStar() {
     flash = 0.34;
 
     const starLimitReached = levelStarsCollected >= starLimitForLevel();
-    const extraLifeEarned = starsCollected % 4 === 0;
+    const extraLifeEarned = starsCollected % 3 === 0;
 
     if (extraLifeEarned) {
       lives += 1;

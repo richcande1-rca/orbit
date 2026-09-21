@@ -1,8 +1,10 @@
 // Orbit gameplay balance tuning.
-starLimitForLevel = function starLimitForLevelWithLateRunCaps() {
-  if (level <= 2) return 4;
-  if (level <= 8) return 2;
-  return 1;
+starLimitForLevel = function starLimitForLevelWithRecoveryCaps() {
+  // Keep a single readable star on the field, but allow more randomly placed
+  // opportunities per run as the difficulty climbs.
+  if (level <= 2) return 5;
+  if (level <= 8) return 3;
+  return 2;
 };
 
 const baseMakeHazardsForBalance = makeHazards;
