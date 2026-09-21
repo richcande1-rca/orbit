@@ -43,8 +43,8 @@ const orbitBloomRun = 2;
 const orbitBloomDurationMs = 1450;
 const orbitBloomTextAtMs = 930;
 const orbitGravityLensRun = 3;
-const orbitGravityLensDurationMs = 1500;
-const orbitGravityLensTextAtMs = 980;
+const orbitGravityLensDurationMs = 2050;
+const orbitGravityLensTextAtMs = 620;
 
 let orbitRewardSeen = new Set();
 let orbitCompleteShown = false;
@@ -903,16 +903,16 @@ function updateOrbitGravityLens() {
 }
 
 function orbitGravityLensStrength(elapsed) {
-  if (elapsed <= 180) {
-    const p = clamp(elapsed / 180, 0, 1);
+  if (elapsed <= 220) {
+    const p = clamp(elapsed / 220, 0, 1);
     return p * p * (3 - 2 * p);
   }
 
-  if (elapsed < 760) {
+  if (elapsed < 1120) {
     return 1;
   }
 
-  const release = clamp((elapsed - 760) / 230, 0, 1);
+  const release = clamp((elapsed - 1120) / 320, 0, 1);
   const eased = release * release * (3 - 2 * release);
   return 1 - eased;
 }
@@ -923,7 +923,7 @@ function drawOrbitGravityLensRings() {
 
   ctx.save();
   ctx.translate(centerX, centerY);
-  ctx.scale(1 + strength * 0.055, 1 - strength * 0.14);
+  ctx.scale(1 + strength * 0.085, 1 - strength * 0.22);
   ctx.lineCap = "round";
 
   rings.forEach((radius, lane) => {
@@ -951,6 +951,15 @@ function drawOrbitGravityLensOverlay() {
   ctx.globalCompositeOperation = "source-over";
   ctx.lineCap = "round";
 
+  // Brief opening flash makes the lens event impossible to miss without
+  // adding blur, filters, or a particle system.
+  const openingFlash = clamp(1 - elapsed / 260, 0, 1);
+  if (openingFlash > 0) {
+    ctx.globalAlpha = openingFlash * 0.22;
+    ctx.fillStyle = "#e8fbff";
+    ctx.fillRect(0, 0, width, height);
+  }
+
   // Pull the visible starfield inward. The lines use the existing star
   // positions, so the effect stays deterministic and cheap in LITE mode.
   if (strength > 0.02) {
@@ -973,7 +982,7 @@ function drawOrbitGravityLensOverlay() {
   }
 
   // Hard blue-white lens halo around the planet.
-  const halo = clamp(1 - Math.abs(elapsed - 560) / 620, 0, 1);
+  const halo = clamp(1 - Math.abs(elapsed - 760) / 820, 0, 1);
   if (halo > 0) {
     ctx.globalAlpha = halo * 0.18;
     ctx.fillStyle = "#bdefff";
@@ -997,7 +1006,7 @@ function drawOrbitGravityLensOverlay() {
   }
 
   // The snap-back launches a clean ripple through the restored geometry.
-  const snapProgress = clamp((elapsed - 900) / 430, 0, 1);
+  const snapProgress = clamp((elapsed - 1320) / 520, 0, 1);
   if (snapProgress > 0 && snapProgress < 1) {
     const snapAlpha = Math.sin(snapProgress * Math.PI);
     const outerRadius = rings.length
