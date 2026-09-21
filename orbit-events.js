@@ -10,55 +10,108 @@
   const cometTwinGapSeconds = 0.65;
 
   let comet = null;
-  let cometLiteSprite = null;
+  let cometSprite = null;
   let cometCooldown = rand(4.5, 7);
   let cometTwinPending = false;
   let cometTwinSecondQueued = false;
   let cometTwinTriggeredRun = 0;
   let cometObservedLevel = level;
 
-  function getCometLiteSprite() {
-    if (cometLiteSprite) return cometLiteSprite;
+  function getCometSprite() {
+    if (cometSprite) return cometSprite;
 
+    // Build the comet once. Flight rendering is then only one rotated drawImage,
+    // which keeps the LITE/mobile path cheap and avoids per-frame blur/gradients.
     const sprite = document.createElement("canvas");
-    sprite.width = cometTrailLength + 44;
-    sprite.height = 40;
+    sprite.width = cometTrailLength + 56;
+    sprite.height = 58;
     const sctx = sprite.getContext("2d");
-    const headX = cometTrailLength + 18;
+    const headX = cometTrailLength + 22;
     const cy = sprite.height / 2;
 
     sctx.lineCap = "round";
-    sctx.strokeStyle = "rgba(255, 106, 39, 0.22)";
-    sctx.lineWidth = 14;
-    sctx.beginPath();
-    sctx.moveTo(8, cy);
-    sctx.lineTo(headX, cy);
-    sctx.stroke();
+    sctx.lineJoin = "round";
 
-    sctx.strokeStyle = "rgba(255, 173, 74, 0.7)";
-    sctx.lineWidth = 6;
+    // Broad, tapered ion haze.
+    const haze = sctx.createLinearGradient(4, cy, headX, cy);
+    haze.addColorStop(0, "rgba(96, 204, 255, 0)");
+    haze.addColorStop(0.42, "rgba(98, 215, 255, 0.10)");
+    haze.addColorStop(0.82, "rgba(156, 235, 255, 0.24)");
+    haze.addColorStop(1, "rgba(224, 252, 255, 0.38)");
+    sctx.fillStyle = haze;
     sctx.beginPath();
-    sctx.moveTo(8, cy);
-    sctx.lineTo(headX, cy);
-    sctx.stroke();
-
-    sctx.fillStyle = "rgba(255, 125, 42, 0.18)";
-    sctx.beginPath();
-    sctx.arc(headX, cy, 12, 0, TAU);
+    sctx.moveTo(4, cy);
+    sctx.quadraticCurveTo(headX * 0.58, cy - 11, headX, cy - 5);
+    sctx.lineTo(headX, cy + 5);
+    sctx.quadraticCurveTo(headX * 0.58, cy + 11, 4, cy);
+    sctx.closePath();
     sctx.fill();
 
-    sctx.fillStyle = "rgba(255, 205, 128, 0.6)";
+    // Two faint separated wisps keep the tail airy rather than crayon-thick.
+    const wisp = sctx.createLinearGradient(18, cy, headX, cy);
+    wisp.addColorStop(0, "rgba(145, 226, 255, 0)");
+    wisp.addColorStop(0.55, "rgba(156, 232, 255, 0.16)");
+    wisp.addColorStop(1, "rgba(221, 251, 255, 0.58)");
+    sctx.strokeStyle = wisp;
+    sctx.lineWidth = 1.4;
+
+    sctx.beginPath();
+    sctx.moveTo(18, cy - 5);
+    sctx.quadraticCurveTo(headX * 0.58, cy - 10, headX - 4, cy - 2);
+    sctx.stroke();
+
+    sctx.beginPath();
+    sctx.moveTo(34, cy + 7);
+    sctx.quadraticCurveTo(headX * 0.66, cy + 10, headX - 3, cy + 2);
+    sctx.stroke();
+
+    // Tight, bright centerline.
+    const coreTrail = sctx.createLinearGradient(28, cy, headX, cy);
+    coreTrail.addColorStop(0, "rgba(219, 249, 255, 0)");
+    coreTrail.addColorStop(0.62, "rgba(218, 249, 255, 0.42)");
+    coreTrail.addColorStop(1, "rgba(255, 255, 255, 0.94)");
+    sctx.strokeStyle = coreTrail;
+    sctx.lineWidth = 2.8;
+    sctx.beginPath();
+    sctx.moveTo(28, cy);
+    sctx.lineTo(headX - 3, cy);
+    sctx.stroke();
+
+    // A few fixed shed sparks add texture without a live particle system.
+    sctx.fillStyle = "rgba(205, 246, 255, 0.62)";
+    for (const spark of [
+      { x: headX - 72, y: cy - 9, r: 1.1 },
+      { x: headX - 49, y: cy + 8, r: 0.9 },
+      { x: headX - 28, y: cy - 7, r: 1.0 },
+    ]) {
+      sctx.beginPath();
+      sctx.arc(spark.x, spark.y, spark.r, 0, TAU);
+      sctx.fill();
+    }
+
+    // Compact halo and white-hot nucleus.
+    sctx.fillStyle = "rgba(108, 217, 255, 0.12)";
+    sctx.beginPath();
+    sctx.arc(headX, cy, 13, 0, TAU);
+    sctx.fill();
+
+    sctx.fillStyle = "rgba(184, 242, 255, 0.32)";
     sctx.beginPath();
     sctx.arc(headX, cy, 8, 0, TAU);
     sctx.fill();
 
-    sctx.fillStyle = "rgba(255, 246, 211, 0.98)";
+    sctx.fillStyle = "rgba(247, 254, 255, 0.98)";
     sctx.beginPath();
-    sctx.arc(headX, cy, 4.5, 0, TAU);
+    sctx.arc(headX, cy, 4.2, 0, TAU);
     sctx.fill();
 
-    cometLiteSprite = sprite;
-    return cometLiteSprite;
+    sctx.fillStyle = "#ffffff";
+    sctx.beginPath();
+    sctx.arc(headX + 1.1, cy - 0.8, 2.0, 0, TAU);
+    sctx.fill();
+
+    cometSprite = sprite;
+    return cometSprite;
   }
   let cometWarningDelay = 0;
   let cometFlash = 0;
@@ -320,47 +373,14 @@
   function drawComet() {
     if (!comet) return;
 
-    const tailX = comet.x - comet.dx * cometTrailLength;
-    const tailY = comet.y - comet.dy * cometTrailLength;
-    const lowPower = !!window.orbitPerformance?.lowPower;
-
-    if (lowPower) {
-      const sprite = getCometLiteSprite();
-      const headX = cometTrailLength + 18;
-      const angle = Math.atan2(comet.dy, comet.dx);
-
-      ctx.save();
-      ctx.translate(comet.x, comet.y);
-      ctx.rotate(angle);
-      ctx.drawImage(sprite, -headX, -sprite.height / 2);
-      ctx.restore();
-      return;
-    }
+    const sprite = getCometSprite();
+    const headX = cometTrailLength + 22;
+    const angle = Math.atan2(comet.dy, comet.dx);
 
     ctx.save();
-    ctx.globalCompositeOperation = "lighter";
-    ctx.lineCap = "round";
-
-    const streak = ctx.createLinearGradient(tailX, tailY, comet.x, comet.y);
-    streak.addColorStop(0, "rgba(255, 109, 36, 0)");
-    streak.addColorStop(0.52, "rgba(255, 132, 36, 0.72)");
-    streak.addColorStop(1, "rgba(255, 238, 180, 1)");
-
-    ctx.shadowBlur = 24;
-    ctx.shadowColor = "rgba(255, 124, 38, 0.95)";
-    ctx.strokeStyle = streak;
-    ctx.lineWidth = 11;
-    ctx.beginPath();
-    ctx.moveTo(tailX, tailY);
-    ctx.lineTo(comet.x, comet.y);
-    ctx.stroke();
-
-    ctx.shadowBlur = 18;
-    ctx.fillStyle = "rgba(255, 241, 203, 0.96)";
-    ctx.beginPath();
-    ctx.arc(comet.x, comet.y, 7, 0, TAU);
-    ctx.fill();
-
+    ctx.translate(comet.x, comet.y);
+    ctx.rotate(angle);
+    ctx.drawImage(sprite, -headX, -sprite.height / 2);
     ctx.restore();
   }
 
@@ -368,8 +388,8 @@
     if (cometFlash <= 0) return;
 
     ctx.save();
-    ctx.globalAlpha = cometFlash * 0.28;
-    ctx.fillStyle = "#ff8a2a";
+    ctx.globalAlpha = cometFlash * 0.22;
+    ctx.fillStyle = "#dff8ff";
     ctx.fillRect(0, 0, width, height);
     ctx.restore();
   }
