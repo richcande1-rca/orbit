@@ -9,6 +9,12 @@
   const cometTwinRun = 10;
   const cometTwinGapSeconds = 0.65;
 
+  const orbitTestParams = new URLSearchParams(window.location.search);
+  let orbitTestMode =
+    orbitTestParams.get("test") === "1" ||
+    orbitTestParams.get("test") === "true";
+  let orbitTestBadge = null;
+
   let comet = null;
   let cometSprite = null;
   let cometCooldown = rand(4.5, 7);
@@ -138,6 +144,26 @@
         opacity: 0.98;
       }
 
+      .orbit-test-badge {
+        position: fixed;
+        right: 10px;
+        bottom: 10px;
+        z-index: 40;
+        padding: 6px 9px;
+        border: 1px solid rgba(155, 235, 255, 0.52);
+        border-radius: 999px;
+        background: rgba(3, 12, 26, 0.78);
+        color: #dffbff;
+        font: 700 11px/1 system-ui, sans-serif;
+        letter-spacing: 0.08em;
+        pointer-events: none;
+        opacity: 0.86;
+      }
+
+      .orbit-test-badge.hidden {
+        display: none;
+      }
+
       @media (max-width: 720px), (pointer: coarse) {
         .instruction.screen-gameover {
           box-shadow: 0 0 18px rgba(255, 110, 120, 0.18);
@@ -150,6 +176,32 @@
     `;
 
     document.head.appendChild(style);
+  }
+
+  function ensureOrbitTestBadge() {
+    if (orbitTestBadge && orbitTestBadge.isConnected) return orbitTestBadge;
+
+    orbitTestBadge = document.createElement("div");
+    orbitTestBadge.className = "orbit-test-badge hidden";
+    orbitTestBadge.textContent = "TEST MODE • INVINCIBLE";
+    document.body.appendChild(orbitTestBadge);
+    return orbitTestBadge;
+  }
+
+  function setOrbitTestMode(enabled, announce = true) {
+    orbitTestMode = !!enabled;
+    const badge = ensureOrbitTestBadge();
+    badge.classList.toggle("hidden", !orbitTestMode);
+
+    if (announce) {
+      updateHud(
+        orbitTestMode
+          ? "TEST MODE: Nova is invincible."
+          : "TEST MODE OFF."
+      );
+    }
+
+    return orbitTestMode;
   }
 
   function randomCometCooldown() {
@@ -265,7 +317,23 @@
     if (state !== "running") return false;
 
     const p = pointOnRing(player.lane, player.angle);
-    return distanceToSegment(p.x, p.y, ax, ay, bx, by) < player.radius + cometHitWidth;
+    const hit =
+      distanceToSegment(p.x, p.y, ax, ay, bx, by) <
+      player.radius + cometHitWidth;
+
+    if (hit && orbitTestMode) {
+      if (!comet.testNovaContact) {
+        comet.testNovaContact = true;
+        shake = Math.max(shake, 0.18);
+        flash = Math.max(flash, 0.3);
+        cometFlash = Math.max(cometFlash, 0.26);
+        invulnerable = Math.max(invulnerable, 0.2);
+        updateHud("TEST MODE: comet impact ignored.");
+      }
+      return false;
+    }
+
+    return hit;
   }
 
   function showGameOverCard(reason) {
@@ -410,6 +478,7 @@
   }
 
   injectOrbitEventStyles();
+  setOrbitTestMode(orbitTestMode, false);
 
   if (typeof setOrbitScreen === "function") {
     const originalSetOrbitScreen = setOrbitScreen;
@@ -430,6 +499,14 @@
 
   crash = function crashWithGameOverCard() {
     if (invulnerable > 0 || state !== "running") return;
+
+    if (orbitTestMode) {
+      shake = Math.max(shake, 0.12);
+      flash = Math.max(flash, 0.2);
+      invulnerable = Math.max(invulnerable, 0.22);
+      updateHud("TEST MODE: debris impact ignored.");
+      return;
+    }
 
     lives -= 1;
     shake = 0.42;
@@ -505,6 +582,27 @@
     },
     { capture: true }
   );
+
+  window.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.code !== "KeyT" || event.repeat) return;
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement ||
+        event.target?.isContentEditable
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      setOrbitTestMode(!orbitTestMode);
+    },
+    { capture: true }
+  );
+
+  window.orbitSetTestMode = (enabled) => setOrbitTestMode(enabled);
+  window.orbitGetTestMode = () => orbitTestMode;
 
   refreshTrainingCopy();
 })();
