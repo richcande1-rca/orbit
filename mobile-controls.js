@@ -28,9 +28,10 @@
       "Use OUT to move outward.",
       "Use IN to move inward.",
       "Dodge pink debris and collect stars.",
-      "Collect 4 stars to add a life!",
+      "Collect 3 stars to add a life!",
+      "Collect floating shield, slow-field, or repair upgrades mid-run.",
       "Jump outward past the outer ring to clear a run.",
-      "CAREFUL! Comet strikes remove 3 lives!",
+      "Comets hurt less on Easy, more on Hard!",
     ]);
   }
 
