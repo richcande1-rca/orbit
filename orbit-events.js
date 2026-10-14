@@ -321,6 +321,9 @@
 
   function cometHitsNova(ax, ay, bx, by) {
     if (state !== "running") return false;
+    // Respect the same post-crash/upgrade grace period as debris.
+    // Test mode still observes comet contact for visual debugging.
+    if (invulnerable > 0 && !orbitTestMode) return false;
 
     const p = pointOnRing(player.lane, player.angle);
     const hit =
