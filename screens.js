@@ -92,16 +92,36 @@ function rebuildOrbitLiteBackgroundCache() {
   }
 
   const gradient = cacheCtx.createRadialGradient(centerX, centerY, 10, centerX, centerY, Math.max(width, height));
-  gradient.addColorStop(0, "#14275d");
-  gradient.addColorStop(0.28, "#081331");
-  gradient.addColorStop(0.62, "#030713");
-  gradient.addColorStop(1, "#000106");
+  gradient.addColorStop(0, "#1a2369");
+  gradient.addColorStop(0.29, "#120d39");
+  gradient.addColorStop(0.64, "#06051d");
+  gradient.addColorStop(1, "#01020d");
   cacheCtx.fillStyle = gradient;
   cacheCtx.fillRect(0, 0, width, height);
 
-  cacheCtx.fillStyle = "#ffffff";
-  for (const star of bgStars) {
-    cacheCtx.globalAlpha = 0.46;
+  // Paint nebula colors ONCE into the cached background, never each frame.
+  const clouds = [
+    { x: 0.22, y: 0.24, radius: 0.52, color: "rgba(182,57,255,0.21)" },
+    { x: 0.84, y: 0.66, radius: 0.47, color: "rgba(26,210,220,0.16)" },
+    { x: 0.72, y: 0.16, radius: 0.34, color: "rgba(255,124,65,0.12)" },
+    { x: 0.15, y: 0.82, radius: 0.35, color: "rgba(255,62,173,0.14)" },
+  ];
+  for (const cloud of clouds) {
+    const cx = width * cloud.x;
+    const cy = height * cloud.y;
+    const outer = Math.max(width, height) * cloud.radius;
+    const haze = cacheCtx.createRadialGradient(cx, cy, 0, cx, cy, outer);
+    haze.addColorStop(0, cloud.color);
+    haze.addColorStop(1, "rgba(0,0,0,0)");
+    cacheCtx.fillStyle = haze;
+    cacheCtx.fillRect(0, 0, width, height);
+  }
+
+  const starColors = ["#ffffff", "#e4dbff", "#c7f9ff", "#ffe5bb", "#ffc6ee"];
+  for (let i = 0; i < bgStars.length; i++) {
+    const star = bgStars[i];
+    cacheCtx.globalAlpha = 0.48;
+    cacheCtx.fillStyle = starColors[i % starColors.length];
     cacheCtx.beginPath();
     cacheCtx.arc(star.x, star.y, star.r, 0, TAU);
     cacheCtx.fill();
@@ -276,18 +296,22 @@ drawOrbitGlow = function drawOrbitGlowPerformance() {
     orbitPhaseLane >= 1 &&
     now < orbitPhaseLaneUntil;
 
+  const ringColors = [
+    [59, 224, 255], [173, 107, 255], [255, 98, 190],
+    [255, 186, 97], [75, 238, 177], [255, 125, 142],
+  ];
   rings.forEach((radius, lane) => {
     const active = lane === player.lane;
     const safe = safeLaneActive && lane === orbitSafeLane;
     const phased = phaseLaneActive && lane === orbitPhaseLane;
-    ctx.lineWidth = phased ? 0.8 : safe ? 2.8 : active ? 2.4 : 1.1;
+    const rgb = ringColors[lane % ringColors.length];
+    const alpha = active ? 0.94 : 0.53;
+    ctx.lineWidth = phased ? 0.8 : safe ? 2.8 : active ? 3.0 : 1.7;
     ctx.strokeStyle = phased
-      ? "rgba(125, 195, 255, 0.025)"
+      ? "rgba(125,195,255,0.035)"
       : safe
-        ? "rgba(128, 255, 190, 0.82)"
-        : active
-          ? "rgba(141, 236, 255, 0.72)"
-          : "rgba(125, 195, 255, 0.18)";
+        ? "rgba(128,255,190,0.94)"
+        : "rgba(" + rgb.join(",") + "," + alpha + ")";
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, TAU);
     ctx.stroke();
@@ -1136,8 +1160,9 @@ function showOrbitTrainingScreen() {
     "Dodge pink debris and collect stars.",
     "Collect 3 stars to add a life!",
     "Jump outward past the outer ring to clear a run.",
-    "Press 1 / 2 / 3 for Easy / Normal / Hard jump speed.",
-    "CAREFUL! Comet strikes remove 3 lives!",
+    "Press 1 / 2 / 3 for Easy / Normal / Hard hazards.",
+    "Collect mid-run power-ups: shield, slow field, and +1 life.",
+    "Comet damage depends on difficulty; shields block one hit.",
   ]);
   updateHud("");
   updateControlButtons();
