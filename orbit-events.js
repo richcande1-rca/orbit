@@ -4,7 +4,11 @@
   const cometWarningMs = 1180;
   const cometTrailLength = 190;
   const cometHitWidth = 16;
-  const cometStrikeDamage = 3;
+  // Difficulty changes comet consequences, not Nova's responsiveness.
+  function cometStrikeDamage() {
+    const difficulty = window.orbitGetDifficulty?.() || "normal";
+    return difficulty === "easy" ? 1 : difficulty === "hard" ? 3 : 2;
+  }
   const cometKnockbackRings = 2;
   const cometTwinRun = 10;
   const cometTwinGapSeconds = 0.65;
@@ -240,7 +244,9 @@
   }
 
   function triggerCometWarning() {
-    cometWarningDelay = cometWarningMs / 1000;
+    const difficulty = window.orbitGetDifficulty?.() || "normal";
+    const warningMs = difficulty === "easy" ? 1750 : difficulty === "hard" ? cometWarningMs : 1450;
+    cometWarningDelay = warningMs / 1000;
 
     if (level === cometTwinRun && cometTwinTriggeredRun !== level) {
       cometTwinTriggeredRun = level;
@@ -357,7 +363,15 @@
   }
 
   function endRunByComet() {
-    lives = Math.max(0, lives - cometStrikeDamage);
+    if (window.orbitPowerupAbsorbComet?.()) {
+      cometFlash = 0.48;
+      clearComet();
+      return;
+    }
+
+    const damage = cometStrikeDamage();
+    lives = Math.max(0, lives - damage);
+    window.orbitPowerupRecordCometHit?.();
     shake = 0.72;
     flash = 0.8;
     cometFlash = 0.72;
@@ -370,9 +384,9 @@
 
     const previousLane = player.lane;
     player.lane = Math.max(0, player.lane - cometKnockbackRings);
-    moveCooldown = typeof orbitMoveCooldownSeconds === "number" ? orbitMoveCooldownSeconds : moveCooldownSeconds;
+    moveCooldown = 0.28;
     invulnerable = 1.4;
-    updateHud(previousLane > player.lane ? `Comet impact. -${cometStrikeDamage} lives. Knocked inward hard.` : `Comet impact. -${cometStrikeDamage} lives. Hold the inner orbit.`);
+    updateHud(previousLane > player.lane ? `Comet impact. -${damage} lives. Knocked inward hard.` : `Comet impact. -${damage} lives. Hold the inner orbit.`);
     updateControlButtons();
   }
 
