@@ -120,13 +120,16 @@
     pickup = null;
     flash = Math.max(flash, 0.34);
     if (kind === "shield") {
+      window.orbitAudio?.star?.();
       shieldReady = true;
       updateHud("SHIELD ACQUIRED — blocks one hit!");
     } else if (kind === "stasis") {
+      window.orbitAudio?.star?.();
       stasisSeconds = 6;
       applyHazardBalance();
       updateHud("SLOW FIELD — debris slowed for 6 seconds!");
     } else {
+      window.orbitAudio?.extraLife?.();
       lives += 1;
       updateHud("REPAIR +1 LIFE!");
       updateControlButtons();
@@ -186,6 +189,7 @@
 
   const originalCrash = crash;
   crash = function crashWithPowerupShield() {
+    if (window.orbitGetTestMode?.()) return originalCrash();
     if (tryAbsorbHit("DEBRIS")) return;
     const beforeLives = lives;
     originalCrash();
