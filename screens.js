@@ -142,7 +142,7 @@ function orbitDifficultyConfig() {
 function setOrbitDifficulty(nextDifficulty) {
   if (!orbitDifficultyModes[nextDifficulty]) return;
   orbitDifficulty = nextDifficulty;
-  updateHud(`Jump speed: ${orbitDifficultyConfig().label}.`);
+  updateHud(`Difficulty: ${orbitDifficultyConfig().label}.`);
   window.dispatchEvent(new CustomEvent("orbitdifficultychange", {
     detail: { difficulty: orbitDifficulty },
   }));
