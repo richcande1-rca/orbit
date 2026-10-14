@@ -3,7 +3,7 @@
   titleScreen.className = "title-screen";
   titleScreen.setAttribute("aria-label", "Opening title screen");
 
-  const orbitBuildStamp = "Orbit build 2026.09.20.20";
+  const orbitBuildStamp = "Orbit build 2026.10.14.1";
 
   const skipButton = document.createElement("button");
   skipButton.className = "title-skip";
@@ -113,7 +113,7 @@
     });
 
     const label = document.createElement("div");
-    label.textContent = "JUMP SPEED";
+    label.textContent = "HAZARD DIFFICULTY";
     Object.assign(label.style, {
       flexBasis: "100%",
       color: "rgba(238, 247, 255, 0.66)",
