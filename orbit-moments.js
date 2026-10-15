@@ -86,7 +86,7 @@
     }
   }
 
-  function awardNearMiss(hazard) {
+  function awardNearMiss(hazard, lane = player.lane, angle = player.angle) {
     rewardedHazards.add(hazard); // A given piece of debris pays once per run.
     combo = comboTime > 0 ? Math.min(4, combo + 1) : 1;
     comboTime = COMBO_WINDOW;
@@ -94,8 +94,8 @@
     score += points;
     popup = "NEAR MISS ×" + combo + "  +" + points;
     popupTime = 1.05;
-    popupAngle = player.angle;
-    popupLane = player.lane;
+    popupAngle = angle;
+    popupLane = lane;
     window.orbitAudio?.star?.();
     updateHud(popup);
   }
@@ -138,6 +138,37 @@
     gravityFactor = 1;
     originalStart();
     syncRun(true);
+  };
+
+  const originalMove = movePlayer;
+  movePlayer = function moveWithNearMissEscape(direction) {
+    const fromLane = player.lane;
+    const fromLevel = level;
+    const fromAngle = player.angle;
+    const fromState = state;
+    let escapedHazard = null;
+    // In Orbit, a narrow escape usually happens *while changing rings*.
+    // Check the ring being abandoned, but only award after a successful move.
+    if (fromState === "running" && invulnerable <= 0 && laneAge >= 0.24 && rings[fromLane]) {
+      for (const hazard of hazards) {
+        if (hazard.lane !== fromLane || rewardedHazards.has(hazard)) continue;
+        const collisionRadius = hazard.size / rings[fromLane] + 0.08;
+        const separation = angleDistance(fromAngle, hazard.angle);
+        if (separation > collisionRadius + 0.025 && separation < collisionRadius + 0.18) {
+          escapedHazard = hazard;
+          break;
+        }
+      }
+    }
+    originalMove(direction);
+    if (player.lane !== fromLane) {
+      laneAge = 0;
+      trackedLane = player.lane;
+      closeApproaches = new WeakMap();
+      if (escapedHazard && level === fromLevel && state === "running") {
+        awardNearMiss(escapedHazard, fromLane, fromAngle);
+      }
+    }
   };
 
   const originalUpdate = update;
