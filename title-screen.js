@@ -3,7 +3,7 @@
   titleScreen.className = "title-screen";
   titleScreen.setAttribute("aria-label", "Opening title screen");
 
-  const orbitBuildStamp = "Orbit build 2026.10.15.1";
+  const orbitBuildStamp = "Orbit build 2026.10.15.2";
 
   const skipButton = document.createElement("button");
   skipButton.className = "title-skip";
@@ -64,6 +64,8 @@
         "Tap anywhere else to move inward.",
         "Avoid pink moons. Reach the outer orbit.",
         "Stars add points and lives. Comets hurt.",
+        "Earn near-miss bonuses by narrowly dodging debris.",
+        "Look for GRAVITY PULSE warnings on later runs.",
       ],
       button: "ENTER ORBIT",
       hint: "",
