@@ -60,7 +60,8 @@
   }
 
   function scale() {
-    return (MODE_SPEED[mode()] || 1) * mercy * pressure() * (stasisSeconds > 0 ? 0.64 : 1);
+    const anomalyScale = window.orbitGetGravityPulseFactor?.() || 1;
+    return (MODE_SPEED[mode()] || 1) * mercy * pressure() * anomalyScale * (stasisSeconds > 0 ? 0.64 : 1);
   }
 
   function applyHazardBalance() {
