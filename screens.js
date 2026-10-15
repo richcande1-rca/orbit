@@ -1164,6 +1164,7 @@ function showOrbitTrainingScreen() {
     "Press 1 / 2 / 3 for Easy / Normal / Hard hazards.",
     "Collect mid-run power-ups: shield, slow field, and +1 life.",
     "Comet damage depends on difficulty; shields block one hit.",
+    "Close calls earn NEAR MISS combos; gravity pulses can accelerate debris.",
   ]);
   updateHud("");
   updateControlButtons();
