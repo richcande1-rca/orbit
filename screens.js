@@ -375,6 +375,7 @@ function closeOrbitSafeCorridorIfReady() {
 
   const speedScale = 1 + (level - 1) * 0.13;
   hazards.push(createOrbitHazard(lane, speedScale));
+  window.orbitApplyHazardBalance?.();
   updateHud("SAFE CORRIDOR CLOSED.");
 }
 
@@ -1158,7 +1159,7 @@ function showOrbitTrainingScreen() {
     "Tap the blue center planet to move outward.",
     "Tap anywhere else to move inward.",
     "Dodge pink debris and collect stars.",
-    "Collect 3 stars to add a life!",
+    "Extra life: 3 stars Easy · 5 Normal · 6 Hard.",
     "Jump outward past the outer ring to clear a run.",
     "Press 1 / 2 / 3 for Easy / Normal / Hard hazards.",
     "Collect mid-run power-ups: shield, slow field, and +1 life.",
