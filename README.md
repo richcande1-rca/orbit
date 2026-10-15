@@ -61,3 +61,18 @@ and cross safely. Power-ups are optional and can expire if ignored.
   Lives are capped at 5 on Normal and 4 on Hard; excess Repairs become a utility pickup.
 - The Run 8 corridor-closing hazard now receives the current difficulty scaling.
 - Nova's jump cooldown remains 0.28 seconds on every mode.
+
+## Gravity Pulse and near-miss scoring — October 15
+
+- On Runs 4, 7 and 11, a **Gravity Pulse** is telegraphed before a
+  3.6-second burst of faster orbital debris. The pulse multiplies existing
+  difficulty/recovery/Slow Field tuning rather than altering collision sizes
+  or Nova's movement. Easy receives only a mild pulse.
+- A close approach to a hazard, followed by a safe separation on the same ring,
+  earns **NEAR MISS** points. Consecutive near misses within nine seconds
+  build a ×1–×4 combo (2, 4, 6, then 8 points).
+- Each piece of debris can pay a near-miss bonus just once per run. Nova must
+  remain on that ring briefly; changing lanes or being invulnerable cannot
+  manufacture a near miss. Collisions and comet hits break the combo.
+- Pausing/reward screens suspend event timers. Rendering uses inexpensive arcs
+  and one brief text popup; no additional sprite effects or new dependencies.
