@@ -48,3 +48,16 @@ This is intentionally simple: circular Frogger with a gorgeous starry background
 
 All gameplay is still the same basic challenge: read moving orbital traffic
 and cross safely. Power-ups are optional and can expire if ignored.
+## October 15 balance pass
+
+- Easy retains its original forgiving tempo and power-up frequency.
+- Normal and Hard gain pressure after consecutive clean clears; later runs
+  accelerate further and occasionally add a carefully spaced counter-orbit hazard.
+- Debris/comet hits reset the clean streak and give about three seconds of reduced
+  hazard speed, followed by a short smooth recovery instead of lasting mercy.
+- Normal and Hard offer fewer pickups, especially Repairs (8% of offers).
+  Only one pickup offer is made per run even if Nova crashes.
+- Star-earned lives now require 5 stars on Normal or 6 on Hard, versus 3 on Easy.
+  Lives are capped at 5 on Normal and 4 on Hard; excess Repairs become a utility pickup.
+- The Run 8 corridor-closing hazard now receives the current difficulty scaling.
+- Nova's jump cooldown remains 0.28 seconds on every mode.
