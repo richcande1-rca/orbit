@@ -229,6 +229,17 @@
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, 0, TAU);
       ctx.stroke();
+      ctx.globalAlpha = 0.92;
+      ctx.fillStyle = pulseStage === "warning" ? "#ffdea9" : "#ffc6ef";
+      ctx.font = "bold 13px system-ui, sans-serif";
+      ctx.textAlign = "center";
+      const secondsLeft = pulseStage === "warning"
+        ? Math.ceil(PULSE_WARNING - pulseAge)
+        : Math.ceil(PULSE_DURATION - pulseAge);
+      ctx.fillText(
+        (pulseStage === "warning" ? "GRAVITY PULSE IN " : "GRAVITY PULSE  ") + Math.max(0, secondsLeft) + "s",
+        centerX, centerY - rings[0] - 24
+      );
       ctx.restore();
     }
     if (popupTime > 0 && state === "running" && rings[popupLane]) {
