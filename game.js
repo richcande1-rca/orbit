@@ -69,6 +69,7 @@ let score = 0;
 let lives = 3;
 let level = 1;
 let starsCollected = 0;
+let starsTowardLife = 0;
 let levelStarsCollected = 0;
 let flash = 0;
 let shake = 0;
@@ -255,6 +256,7 @@ function startGame() {
   lives = 3;
   level = 1;
   starsCollected = 0;
+  starsTowardLife = 0;
   levelStarsCollected = 0;
   ringCount = targetRingCountForLevel();
   resize();
@@ -499,12 +501,18 @@ function checkBonusStar() {
   const diff = angleDistance(player.angle, bonusStar.angle);
   if (diff < 0.12) {
     starsCollected += 1;
+    starsTowardLife += 1;
     levelStarsCollected += 1;
     score += 3;
     flash = 0.34;
 
+    const difficulty = window.orbitGetDifficulty?.() || "normal";
+    const starsPerLife = difficulty === "easy" ? 3 : difficulty === "hard" ? 6 : 5;
+    const lifeCap = difficulty === "easy" ? Infinity : difficulty === "hard" ? 4 : 5;
     const starLimitReached = levelStarsCollected >= starLimitForLevel();
-    const extraLifeEarned = starsCollected % 3 === 0;
+    const lifeThresholdReached = starsTowardLife >= starsPerLife;
+    if (lifeThresholdReached) starsTowardLife = 0;
+    const extraLifeEarned = lifeThresholdReached && lives < lifeCap;
 
     if (extraLifeEarned) {
       lives += 1;

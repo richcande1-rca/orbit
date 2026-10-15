@@ -12,6 +12,9 @@
   const pickSprites = {};
 
   let mercy = 1;
+  let recoveryDelay = 0;
+  let cleanStreak = 0;
+  let damagedThisRun = false;
   let shieldReady = false;
   let stasisSeconds = 0;
   let pickup = null;
@@ -47,8 +50,17 @@
       : "normal";
   }
 
+  function pressure() {
+    // Easy keeps its original hazards. On other modes, clean crossings earn
+    // stronger traffic, with a further ramp in the final half of the campaign.
+    if (mode() === "easy") return 1;
+    const lateRun = Math.max(0, Math.min(8, level - 4)) * 0.028;
+    const momentum = Math.min(5, cleanStreak) * 0.045;
+    return 1 + lateRun + momentum;
+  }
+
   function scale() {
-    return (MODE_SPEED[mode()] || 1) * mercy * (stasisSeconds > 0 ? 0.64 : 1);
+    return (MODE_SPEED[mode()] || 1) * mercy * pressure() * (stasisSeconds > 0 ? 0.64 : 1);
   }
 
   function applyHazardBalance() {
@@ -76,20 +88,32 @@
   }
 
   function recordRealHit() {
-    mercy = Math.max(0.74, mercy - 0.09);
+    if (mode() === "easy") {
+      // Preserve Easy's gentler recovery and second-chance pickups.
+      mercy = Math.max(0.74, mercy - 0.09);
+      spawnedThisRun = false;
+    } else {
+      // Brief relief after a hit, rather than a permanent reduction lasting
+      // several more cleared runs.
+      mercy = 0.84;
+      recoveryDelay = 3.0;
+      cleanStreak = 0;
+      damagedThisRun = true;
+    }
     applyHazardBalance();
     pickup = null;
-    // A player who crashes may find another pickup after climbing again.
-    spawnedThisRun = false;
     runAge = 0;
   }
 
   function observeRunChange() {
     if (trackedLevel === level) return;
     if (level > trackedLevel) {
-      // Ease off after a crash, then gently restore the chosen baseline
-      // as the player makes clean progress; never exceed that baseline.
-      mercy = Math.min(1, mercy + 0.055);
+      if (mode() === "easy") {
+        mercy = Math.min(1, mercy + 0.055);
+      } else {
+        cleanStreak = damagedThisRun ? 0 : Math.min(5, cleanStreak + 1);
+      }
+      damagedThisRun = false;
     }
     trackedLevel = level;
     spawnedThisRun = false;
@@ -98,21 +122,51 @@
     applyHazardBalance();
   }
 
+  function addCrossTraffic() {
+    const difficulty = mode();
+    if (difficulty === "easy" || level < 6 || level > 12) return;
+
+    // A limited number of opposing hazards introduces interesting timing
+    // choices, not a solid wall. Leave Run 6's special crosscurrent untouched.
+    const count = level >= 12 && difficulty === "hard" ? 2
+      : level >= 8 ? 1
+      : Math.random() < (level === 6 ? 0.35 : 0.6) ? 1 : 0;
+    const freeLanes = [];
+    for (let lane = 2; lane < ringCount; lane++) {
+      if (hazards.filter(h => h.lane === lane).length === 1) freeLanes.push(lane);
+    }
+    for (let i = 0; i < count && freeLanes.length; i++) {
+      const laneIndex = Math.floor(Math.random() * freeLanes.length);
+      const lane = freeLanes.splice(laneIndex, 1)[0];
+      const original = hazards.find(h => h.lane === lane);
+      const counter = createOrbitHazard(lane, 1 + (level - 1) * 0.13, true);
+      // Do not sandwich a new counter-hazard on top of existing debris.
+      counter.angle = (original.angle + rand(1.45, TAU - 1.45)) % TAU;
+      hazards.push(counter);
+    }
+  }
+
   function maybeSpawnPickup() {
     if (pickup || spawnedThisRun || level < 2 || state !== "running") return;
     if (player.lane < 1) return;
     // Offer one visible choice mid-crossing, not an unavoidable bonus
     // or an item on an already-passed lane.
     if (player.lane < 2 && runAge < 3.2) return;
+    const difficulty = mode();
+    spawnedThisRun = true; // At most one offer per run on Normal/Hard.
+    if (difficulty !== "easy" && Math.random() < (difficulty === "hard" ? 0.32 : 0.20)) return;
     const r = Math.random();
-    const type = r < 0.44 ? "shield" : r < 0.80 ? "stasis" : "repair";
+    let type = difficulty === "easy"
+      ? (r < 0.44 ? "shield" : r < 0.80 ? "stasis" : "repair")
+      : (r < 0.53 ? "shield" : r < 0.92 ? "stasis" : "repair");
+    const lifeCap = difficulty === "hard" ? 4 : difficulty === "normal" ? 5 : Infinity;
+    if (type === "repair" && lives >= lifeCap) type = r < 0.5 ? "shield" : "stasis";
     pickup = {
       type,
       lane: player.lane,
       angle: (player.angle + 0.60 + Math.random() * 0.26) % TAU,
-      timeLeft: 7.5,
+      timeLeft: difficulty === "easy" ? 7.5 : 6.2,
     };
-    spawnedThisRun = true;
   }
 
   function collectPickup() {
@@ -157,12 +211,18 @@
   const originalMakeHazards = makeHazards;
   makeHazards = function makeHazardsWithAdaptiveSpeed() {
     originalMakeHazards();
+    addCrossTraffic();
     applyHazardBalance();
   };
+  // Run 8's safe corridor creates its hazard after its original spawn pass.
+  window.orbitApplyHazardBalance = applyHazardBalance;
 
   const originalStartGame = startGame;
   startGame = function startGameWithUpgrades() {
     mercy = 1;
+    recoveryDelay = 0;
+    cleanStreak = 0;
+    damagedThisRun = false;
     shieldReady = false;
     stasisSeconds = 0;
     pickup = null;
@@ -204,6 +264,14 @@
 
     runAge += dt;
     animationAge += dt;
+
+    if (mode() !== "easy" && mercy < 1) {
+      recoveryDelay = Math.max(0, recoveryDelay - dt);
+      if (recoveryDelay === 0) {
+        mercy = Math.min(1, mercy + dt * 0.075);
+        applyHazardBalance();
+      }
+    }
 
     if (stasisSeconds > 0) {
       stasisSeconds = Math.max(0, stasisSeconds - dt);
