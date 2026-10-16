@@ -396,6 +396,9 @@
 
   function updateCometSystem(dt) {
     if (cometObservedLevel !== level) {
+      // Run numbers wrap from 12 to 1 at SPACE WARP. Re-arm Run 10's
+      // twin-comet sequence in every new cycle, not only the first.
+      if (level < cometObservedLevel) cometTwinTriggeredRun = 0;
       cometObservedLevel = level;
       cometTwinPending = false;
       cometTwinSecondQueued = false;
