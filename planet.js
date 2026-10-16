@@ -64,16 +64,16 @@ function orbitBuildPlanetTexture() {
       const density = Math.max(0, Math.min(1,
         (clouds - 0.35) * 2.0 + (filaments - 0.5) * 0.48 + circulation
       ));
-      const cloudLight = 0.18 + Math.pow(density, 1.25) * 0.82;
-      const shadow = 0.21 + 0.79 * Math.pow(
+      const cloudLight = 0.23 + Math.pow(density, 1.25) * 0.77;
+      const shadow = 0.30 + 0.70 * Math.pow(
         Math.max(0, nx * -0.38 + ny * -0.29 + z * 0.88), 0.86
       );
-      const curvedLimb = 0.62 + 0.38 * Math.min(1, z / 0.55);
+      const curvedLimb = 0.72 + 0.28 * Math.min(1, z / 0.55);
       const shade = shadow * curvedLimb;
       const offset = (y * size + x) * 4;
-      pixels[offset] = Math.round((25 + 104 * cloudLight) * shade);
-      pixels[offset + 1] = Math.round((61 + 129 * cloudLight) * shade);
-      pixels[offset + 2] = Math.round((111 + 119 * cloudLight) * shade);
+      pixels[offset] = Math.round((30 + 108 * cloudLight) * shade);
+      pixels[offset + 1] = Math.round((68 + 139 * cloudLight) * shade);
+      pixels[offset + 2] = Math.round((114 + 135 * cloudLight) * shade);
       // A one-pixel feather prevents a harsh jagged circular edge.
       pixels[offset + 3] = Math.round(255 * Math.min(1, (1 - Math.sqrt(r2)) * size * 0.51));
     }
