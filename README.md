@@ -142,3 +142,21 @@ and cross safely. Power-ups are optional and can expire if ignored.
   dust lanes over the atmosphere and rim.
 - Keep planet weather, auroras, stars, Nova movement, collisions, difficulty,
   near misses, and the Run 5 ion storm exactly as before.
+
+## Planet rotation and Ringfall — build 2026.10.15.8
+
+- Animated cloud masses and cyclone follow projected longitude across the
+  hemisphere instead of swaying in place. Cloud features taper and fade at
+  the limb and rotate out of sight in ~94 seconds. The cached blue cloud
+  base, lighting and the planetary dust-ring appearance stay untouched.
+- **RINGFALL** now identifies Run 12: a specific section of the existing
+  planetary dust ring flashes amber and shows the outgoing path for 2.15s
+  before small icy fragments physically leave the ring and travel radially
+  outward through the gameplay lanes. A second wave follows.
+- Fragments exist as moving objects with actual positions and radii, and
+  collide with Nova using world-space distances. Shields, existing
+  invulnerability, test-mode invincibility, and life loss use the normal
+  crash handler. They disappear only after impact or leaving the outer orbit.
+- The warning precedes the launch, and the relatively narrow ice fan leaves
+  maneuvering space. Easy mode emits two fragments per wave instead of three.
+- Neither Nova's movement rules nor the late-game SPACE WARP ending change.
