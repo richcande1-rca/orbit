@@ -178,7 +178,7 @@
 
 
 /* End-of-game pinball-style score presentation. */
-.is-hidden { display: none !important; }
+.orbit-board .is-hidden { display: none !important; }
 .orbit-board-final {
   display: grid;
   justify-items: center;
