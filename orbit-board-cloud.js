@@ -15,6 +15,7 @@
   let displayedEntries = [];
   let requestSerial = 0;
   let submissionBusy = false;
+  let submissionStatus = "";
 
   const board = document.createElement("section");
   board.id = "orbitBoard";
@@ -156,7 +157,7 @@
       " · Run " + finalSnapshot.run +
       " · " + finalSnapshot.clearedRuns + " total runs cleared";
     verdict.textContent = submitted
-      ? "Score recorded. Play again!"
+      ? (submissionStatus || "Score recorded. Play again!")
       : qualifies ? "TOP 10 SCORE! Enter your initials."
       : "Top 10 not reached. Play again and beat it!";
   }
@@ -270,15 +271,15 @@
       const entries = await postCloudEntry(entry);
       if (id !== requestSerial) return;
       submitted = true;
+      submissionStatus = "Saved to shared STARBOARD!";
       render(entries, "cloud");
-      verdict.textContent = "Saved to shared STARBOARD!";
     } catch (error) {
       if (id !== requestSerial) return;
       const entries = sortEntries([entry, ...loadLocal()]).slice(0, topSize);
       saveLocal(entries);
       submitted = true;
+      submissionStatus = "Cloud unavailable — saved locally only.";
       render(entries, "local");
-      verdict.textContent = "Cloud unavailable — saved locally only.";
     } finally {
       submissionBusy = false;
       signButton.textContent = "Submit Score";
@@ -314,6 +315,7 @@
     if (finalSnapshot) return; // No duplicate game-over overlay or score submission.
     finalSnapshot = snapshotFinal();
     submitted = false;
+    submissionStatus = "";
     qualifies = false;
     closeBoard();
     openBoard();
@@ -325,6 +327,7 @@
     closeBoard();
     finalSnapshot = null;
     submitted = false;
+    submissionStatus = "";
     qualifies = false;
     originalStartGame();
   };
