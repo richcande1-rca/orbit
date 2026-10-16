@@ -152,45 +152,58 @@
     cloudCtx.fillStyle = limb;
     cloudCtx.fillRect(0, 0, CLOUD_SIZE, CLOUD_SIZE);
 
-    // A small recognizable cyclone with a soft eye and three unequal spiral
-    // arms. Its whole sprite rotates gently; no spiral geometry per frame.
-    const c = STORM_SIZE * 0.5;
-    const halo = swirlCtx.createRadialGradient(c, c, 2, c, c, c * 0.91);
-    halo.addColorStop(0, "rgba(225,251,255,0.30)");
-    halo.addColorStop(0.27, "rgba(116,239,255,0.22)");
-    halo.addColorStop(0.62, "rgba(73,166,247,0.13)");
-    halo.addColorStop(1, "rgba(38,126,219,0)");
-    swirlCtx.fillStyle = halo;
+    // Bake diffuse, sheared storm clouds. No outlined spiral arms or
+    // fluorescent bullseye: at game size this should read as weather.
+    const c = STORM_SIZE / 2;
+    swirlCtx.save();
+    swirlCtx.translate(c, c);
+    swirlCtx.scale(1, 0.76);
+    const outerHaze = swirlCtx.createRadialGradient(0, 0, 3, 0, 0, c * 0.90);
+    outerHaze.addColorStop(0, "rgba(134,184,203,0.14)");
+    outerHaze.addColorStop(0.42, "rgba(148,196,213,0.23)");
+    outerHaze.addColorStop(0.76, "rgba(85,132,175,0.13)");
+    outerHaze.addColorStop(1, "rgba(60,115,167,0)");
+    swirlCtx.fillStyle = outerHaze;
     swirlCtx.beginPath();
-    swirlCtx.arc(c, c, c * 0.92, 0, TAU);
+    swirlCtx.arc(0, 0, c * 0.9, 0, TAU);
     swirlCtx.fill();
 
-    swirlCtx.lineCap = "round";
-    for (let arm = 0; arm < 3; arm++) {
-      swirlCtx.beginPath();
-      for (let step = 0; step <= 36; step++) {
-        const t = step / 36;
-        const theta = arm * TAU / 3 + t * 4.4 + arm * 0.18;
-        const radius = c * (0.16 + 0.60 * t);
-        const px = c + Math.cos(theta) * radius;
-        const py = c + Math.sin(theta) * radius * 0.77;
-        if (step === 0) swirlCtx.moveTo(px, py);
-        else swirlCtx.lineTo(px, py);
+    for (let band = 0; band < 3; band++) {
+      const count = 13 + band * 4;
+      for (let i = 0; i < count; i++) {
+        const theta = i * TAU / count + band * 0.56;
+        const distance = c * (0.23 + band * 0.22) +
+          Math.sin(i * 1.7 + band) * c * 0.042;
+        const px = Math.cos(theta) * distance;
+        const py = Math.sin(theta) * distance;
+        const width = c * (0.19 + band * 0.026);
+        const height = c * (0.070 + band * 0.021);
+        swirlCtx.save();
+        swirlCtx.translate(px, py);
+        swirlCtx.rotate(theta + 0.55 + Math.sin(theta * 2.5) * 0.14);
+        swirlCtx.scale(width, height);
+        const puff = swirlCtx.createRadialGradient(0, 0, 0, 0, 0, 1);
+        const alpha = (0.17 + (i % 4) * 0.025) * (1 - band * 0.08);
+        puff.addColorStop(0, "rgba(203,220,229," + alpha + ")");
+        puff.addColorStop(0.44, "rgba(165,193,215," + alpha * 0.64 + ")");
+        puff.addColorStop(1, "rgba(101,154,194,0)");
+        swirlCtx.fillStyle = puff;
+        swirlCtx.beginPath();
+        swirlCtx.arc(0, 0, 1, 0, TAU);
+        swirlCtx.fill();
+        swirlCtx.restore();
       }
-      swirlCtx.strokeStyle = arm === 1
-        ? "rgba(174,183,255,0.36)" : "rgba(182,247,255,0.58)";
-      swirlCtx.lineWidth = arm === 0 ? 8 : 5.5;
-      swirlCtx.stroke();
     }
-
-    const eye = swirlCtx.createRadialGradient(c - 3, c - 2, 0, c, c, c * 0.21);
-    eye.addColorStop(0, "rgba(235,254,255,0.94)");
-    eye.addColorStop(0.39, "rgba(150,231,255,0.66)");
-    eye.addColorStop(1, "rgba(80,166,239,0)");
+    // A subdued calm eye, not a bright swirl emblem.
+    const eye = swirlCtx.createRadialGradient(-3, -2, 0, 0, 0, c * 0.19);
+    eye.addColorStop(0, "rgba(24,64,113,0.46)");
+    eye.addColorStop(0.48, "rgba(88,145,171,0.23)");
+    eye.addColorStop(1, "rgba(140,190,209,0)");
     swirlCtx.fillStyle = eye;
     swirlCtx.beginPath();
-    swirlCtx.ellipse(c, c, c * 0.23, c * 0.16, -0.26, 0, TAU);
+    swirlCtx.ellipse(0, 0, c * 0.21, c * 0.15, 0.18, 0, TAU);
     swirlCtx.fill();
+    swirlCtx.restore();
 
     cloudSheet = clouds;
     cycloneSheet = storm;
@@ -206,7 +219,7 @@
 
     ctx.save();
     ctx.globalCompositeOperation = "screen";
-    ctx.globalAlpha = Math.min(0.98, 0.74 + turbulence * 0.08 + stormIntensity * 0.16);
+    ctx.globalAlpha = Math.min(0.72, 0.43 + turbulence * 0.07 + stormIntensity * 0.16);
     ctx.drawImage(
       cloudSheet, centerX - diameter * 0.5 + driftX,
       centerY - diameter * 0.5 + driftY, diameter, diameter
@@ -217,114 +230,67 @@
     const cycloneX = centerX + radius * (0.21 + Math.sin(weatherTime * 0.13) * 0.035);
     const cycloneY = centerY + radius * (0.18 + Math.cos(weatherTime * 0.12) * 0.026);
     ctx.translate(cycloneX, cycloneY);
-    ctx.rotate(weatherTime * (0.13 + turbulence * 0.07 + stormIntensity * 0.09));
+    ctx.rotate(weatherTime * (0.055 + turbulence * 0.025 + stormIntensity * 0.035));
     ctx.scale(0.94, 0.76);
-    ctx.globalAlpha = Math.min(1, 0.79 + turbulence * 0.10 + stormIntensity * 0.11);
-    const eyeSize = radius * 0.86;
+    ctx.globalAlpha = Math.min(0.76, 0.49 + turbulence * 0.09 + stormIntensity * 0.16);
+    const eyeSize = radius * 1.21;
     ctx.drawImage(cycloneSheet, -eyeSize * 0.5, -eyeSize * 0.5, eyeSize, eyeSize);
     ctx.restore();
   }
 
-  // Polar curtains stay ON the sphere. No orbital ellipses or halo strokes.
-  // Two shared gradients and a handful of ribbon paths keep LITE mode cheap.
-  function drawAuroraCurtains(radius, turbulence, stormIntensity) {
-    const strength = 0.35 + turbulence * 0.32 + stormIntensity * 0.27;
+  // Two diffuse polar aurora washes rather than vertical, crystalline
+  // ribbons. They are barely visible until later runs or the electrical storm.
+  function drawPolarHaze(radius, turbulence, stormIntensity) {
     ctx.save();
     ctx.globalCompositeOperation = "screen";
-
-    for (const pole of [
-      { sign: -1, count: 8, span: 0.59, reach: 0.21, opacity: 1 },
-      { sign: 1, count: 5, span: 0.48, reach: 0.34, opacity: 0.58 },
-    ]) {
-      const topY = centerY + pole.sign * radius * 0.94;
-      const bottomY = centerY + pole.sign * radius * pole.reach;
-      const glow = ctx.createLinearGradient(centerX, topY, centerX, bottomY);
-      glow.addColorStop(0, "rgba(95, 255, 208, 0)");
-      glow.addColorStop(0.22, "rgba(95, 255, 208, 0.84)");
-      glow.addColorStop(0.60, "rgba(169, 124, 255, 0.55)");
-      glow.addColorStop(1, "rgba(111, 218, 255, 0)");
+    for (const sign of [-1, 1]) {
+      const drift = Math.sin(weatherTime * 0.22 + sign) * radius * 0.055;
+      const y = centerY + sign * radius * 0.88;
+      const glow = ctx.createRadialGradient(
+        centerX + drift, y, radius * 0.03,
+        centerX + drift, y, radius * 0.64
+      );
+      glow.addColorStop(0, "rgba(81,188,175,0.26)");
+      glow.addColorStop(0.35, "rgba(117,164,211,0.11)");
+      glow.addColorStop(1, "rgba(80,139,186,0)");
+      ctx.globalAlpha = (sign < 0 ? 1 : 0.48) *
+        (0.18 + turbulence * 0.27 + stormIntensity * 0.18);
       ctx.fillStyle = glow;
-
-      for (let i = 0; i < pole.count; i++) {
-        const t = i / (pole.count - 1);
-        const x = (t * 2 - 1) * pole.span;
-        const edge = 1 - Math.pow(Math.abs(x / pole.span), 1.9) * 0.57;
-        const phase = weatherTime * (0.44 + i * 0.025) + i * 1.07;
-        const sway = Math.sin(phase) * radius * (0.037 + turbulence * 0.015);
-        const curl = Math.sin(phase * 0.69 + i) * radius * 0.085;
-        const left = centerX + radius * x + sway;
-        const startY = centerY + pole.sign * radius * (0.91 - (i % 3) * 0.065);
-        const endY = centerY + pole.sign * radius *
-          (pole.reach + (1 - edge) * 0.36 + (i % 2) * 0.045);
-        const midY = (startY + endY) * 0.5;
-        const width = radius * (0.075 + (i % 3) * 0.024);
-        const tipX = left + curl + radius * 0.06 * (t - 0.5);
-        const shimmer = 0.89 + Math.sin(weatherTime * 1.13 + i * 1.8) * 0.11;
-
-        ctx.globalAlpha = strength * pole.opacity * edge * shimmer;
-        ctx.beginPath();
-        ctx.moveTo(left - width * 0.23, startY);
-        ctx.bezierCurveTo(
-          left - width * 0.95, midY - pole.sign * radius * 0.12,
-          tipX - width * 0.7, midY + pole.sign * radius * 0.07,
-          tipX, endY
-        );
-        ctx.bezierCurveTo(
-          tipX + width * 0.62, midY + pole.sign * radius * 0.07,
-          left + width * 1.05, midY - pole.sign * radius * 0.10,
-          left + width * 0.23, startY
-        );
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.strokeStyle = i % 3 === 0 ? "#a6ffe5" : "#d0b0ff";
-        ctx.lineWidth = Math.max(0.75, radius * 0.012);
-        ctx.globalAlpha = strength * pole.opacity * edge * 0.20;
-        ctx.beginPath();
-        ctx.moveTo(left, startY);
-        ctx.quadraticCurveTo(left + curl * 0.25, midY, tipX, endY);
-        ctx.stroke();
-      }
+      ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
     }
     ctx.restore();
   }
 
-  // Draw animated cached cloud banks, cyclone, and auroras over the sphere.
-  const previousDrawPlanet = drawPlanet;
-  drawPlanet = function drawPlanetWithWeather() {
-    previousDrawPlanet();
-    if (!planetRadius || !ctx) return;
-
+  // Called by planet.js BEFORE it paints the foreground ring. This keeps
+  // everything attached to the illuminated sphere, rather than overlaying
+  // the front ring with cloud or aurora graphics.
+  window.orbitRenderPlanetWeather = function renderPlanetWeather() {
+    if (!(planetRadius > 0)) return;
     const radius = planetRadius;
     const turbulence = Math.min(1, Math.max(0, (level - 1) / 11));
     const intensity = stormStage === "active" ? 1 : stormStage === "warning" ? 0.6 : 0;
-
     ctx.save();
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius * 0.985, 0, TAU);
     ctx.clip();
-    ctx.lineCap = "round";
 
-    // Cached irregular cloud banks + rotating cyclone, entirely inside the globe.
     drawMovingClouds(radius, turbulence, intensity);
+    drawPolarHaze(radius, turbulence, intensity);
 
-    if (stormStage === "warning" || stormStage === "active") {
-      // Small atmospheric lightning on the planet itself.
-      ctx.strokeStyle = stormStage === "active" ? "#f9e7ff" : "#74dcff";
-      ctx.lineWidth = Math.max(1.5, radius * 0.027);
-      ctx.globalAlpha = (stormStage === "active" ? 0.82 : 0.40) *
-        (0.77 + 0.23 * Math.sin(weatherTime * 17));
-      const sx = centerX + Math.sin(weatherTime * 1.8) * radius * 0.34;
-      const sy = centerY - radius * 0.35;
+    if (intensity > 0) {
+      // Lightning stays within the planet's weather layer.
+      ctx.globalAlpha = intensity * (0.42 + 0.19 * Math.sin(weatherTime * 16));
+      ctx.strokeStyle = "#d1e6f4";
+      ctx.lineWidth = Math.max(1.2, radius * 0.024);
+      const sx = centerX + Math.sin(weatherTime * 1.8) * radius * 0.26;
+      const sy = centerY - radius * 0.23;
       ctx.beginPath();
       ctx.moveTo(sx, sy);
-      ctx.lineTo(sx + radius * 0.10, sy + radius * 0.20);
-      ctx.lineTo(sx - radius * 0.03, sy + radius * 0.33);
-      ctx.lineTo(sx + radius * 0.08, sy + radius * 0.48);
+      ctx.lineTo(sx + radius * 0.07, sy + radius * 0.14);
+      ctx.lineTo(sx - radius * 0.03, sy + radius * 0.24);
+      ctx.lineTo(sx + radius * 0.06, sy + radius * 0.36);
       ctx.stroke();
     }
-    // Draw before restoring the planet clip: no light can float beyond its limb.
-    drawAuroraCurtains(radius, turbulence, intensity);
     ctx.restore();
   };
 
