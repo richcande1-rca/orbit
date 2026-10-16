@@ -1170,6 +1170,7 @@ function showOrbitTrainingScreen() {
   setOrbitScreen("TRAINING ORBIT", [
     "Tap the blue center planet to move outward.",
     "Tap anywhere else to move inward.",
+    "Keyboard: ← Left moves IN · → Right moves OUT · Space moves OUT.",
     "Dodge debris. Run 1: collect three timed gold STAR CHASE marks.",
     "Run 2: enter the moving gold SURGE arc for a speed boost.",
     "Extra life: 3 stars Easy · 5 Normal · 6 Hard.",

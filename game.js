@@ -851,6 +851,23 @@ if (resetButton) {
   });
 }
 window.addEventListener("keydown", (event) => {
+  if (event.code === "ArrowLeft" || event.code === "ArrowRight") {
+    // Don't hijack arrow navigation in inputs or editable controls.
+    const target = event.target;
+    if (target?.isContentEditable ||
+        target?.closest?.("input, textarea, select, [contenteditable]")) return;
+    if (state !== "running" ||
+        document.body.classList.contains("title-screen-active")) return;
+
+    // Prevent browser scrolling even when an event briefly locks movement.
+    event.preventDefault();
+    if (typeof orbitInputLocked === "function" && orbitInputLocked()) return;
+
+    // Retain the ordinary movement stack (cooldown, power-ups, rewards).
+    movePlayer(event.code === "ArrowLeft" ? -1 : 1);
+    return;
+  }
+
   if (event.code === "KeyP" || event.code === "Escape") {
     event.preventDefault();
     togglePause();
