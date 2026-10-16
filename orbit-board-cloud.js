@@ -105,7 +105,7 @@
   // Cycle prefix, preserving deployed cloud API/schema and all older entries.
   function decodeMessage(entry) {
     const message = String(entry.message || "Kilroy was here.");
-    const match = /^C([2-9][0-9]*) \| /.exec(message);
+    const match = /^C([1-9][0-9]*) \| /.exec(message);
     return {
       cycle: match ? Math.min(9999, Number(match[1])) : 1,
       message: match ? message.slice(match[0].length) : message,
