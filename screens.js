@@ -1344,6 +1344,7 @@ canvas.addEventListener(
 window.addEventListener(
   "keydown",
   (event) => {
+    if (window.orbitIsStarboardOpen?.()) return;
     if (event.code === "Digit1" || event.code === "Numpad1") {
       event.preventDefault();
       setOrbitDifficulty("easy");
