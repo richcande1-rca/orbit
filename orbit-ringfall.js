@@ -82,8 +82,12 @@
       const collision = player.radius + shard.size;
       if (dx * dx + dy * dy >= collision * collision) continue;
       shard.spent = true;
+      const beforeLives = lives;
       crash(); // Standard shield, test-mode, invulnerability and hit logic.
-      if (state === "running") updateHud("RINGFALL — ICE IMPACT!");
+      // Keep the existing SHIELD ABSORBED message if a shield saved Nova.
+      if (state === "running" && lives < beforeLives) {
+        updateHud("RINGFALL — ICE IMPACT!");
+      }
     }
     shards = shards.filter(s => !s.spent && s.radius <= outerRadius);
   }
