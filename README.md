@@ -129,3 +129,16 @@ and cross safely. Power-ups are optional and can expire if ignored.
   weather sprites. No new texture generation occurs on subsequent frames.
 - Keep the Run 5 electrical warning/damage, responsive movement, collision
   geometry, near-miss scoring, and finale behavior unchanged.
+
+## Layered ring realism (build 2026.10.15.7)
+
+- Retain the established tilted ring shape and direction; replace the single
+  thick blue-white ribbon with five fine, low-opacity foreground dust lanes
+  and three dimmer background lanes.
+- Add a hairline division and restrained density variation to break the flat
+  plastic-band appearance. Both sides are thinner and less neon than before.
+- Restore natural ring depth: draw the back half behind the spherical texture,
+  place a subtle clipped cast shadow on the globe, then draw the foreground
+  dust lanes over the atmosphere and rim.
+- Keep planet weather, auroras, stars, Nova movement, collisions, difficulty,
+  near misses, and the Run 5 ion storm exactly as before.
