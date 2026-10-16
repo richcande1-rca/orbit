@@ -82,8 +82,71 @@
     if (state === "running") advanceStorm(dt);
   };
 
-  // Overlay subtle clouds on top of the existing planet texture rather than
-  // rebuilding gradients every frame. Five short lines plus polar auroras.
+  // Polar curtains stay ON the sphere. No orbital ellipses or halo strokes.
+  // Two shared gradients and a handful of ribbon paths keep LITE mode cheap.
+  function drawAuroraCurtains(radius, turbulence, stormIntensity) {
+    const strength = 0.35 + turbulence * 0.32 + stormIntensity * 0.27;
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+
+    for (const pole of [
+      { sign: -1, count: 8, span: 0.59, reach: 0.21, opacity: 1 },
+      { sign: 1, count: 5, span: 0.48, reach: 0.34, opacity: 0.58 },
+    ]) {
+      const topY = centerY + pole.sign * radius * 0.94;
+      const bottomY = centerY + pole.sign * radius * pole.reach;
+      const glow = ctx.createLinearGradient(centerX, topY, centerX, bottomY);
+      glow.addColorStop(0, "rgba(95, 255, 208, 0)");
+      glow.addColorStop(0.22, "rgba(95, 255, 208, 0.84)");
+      glow.addColorStop(0.60, "rgba(169, 124, 255, 0.55)");
+      glow.addColorStop(1, "rgba(111, 218, 255, 0)");
+      ctx.fillStyle = glow;
+
+      for (let i = 0; i < pole.count; i++) {
+        const t = i / (pole.count - 1);
+        const x = (t * 2 - 1) * pole.span;
+        const edge = 1 - Math.pow(Math.abs(x / pole.span), 1.9) * 0.57;
+        const phase = weatherTime * (0.44 + i * 0.025) + i * 1.07;
+        const sway = Math.sin(phase) * radius * (0.037 + turbulence * 0.015);
+        const curl = Math.sin(phase * 0.69 + i) * radius * 0.085;
+        const left = centerX + radius * x + sway;
+        const startY = centerY + pole.sign * radius * (0.91 - (i % 3) * 0.065);
+        const endY = centerY + pole.sign * radius *
+          (pole.reach + (1 - edge) * 0.36 + (i % 2) * 0.045);
+        const midY = (startY + endY) * 0.5;
+        const width = radius * (0.075 + (i % 3) * 0.024);
+        const tipX = left + curl + radius * 0.06 * (t - 0.5);
+        const shimmer = 0.89 + Math.sin(weatherTime * 1.13 + i * 1.8) * 0.11;
+
+        ctx.globalAlpha = strength * pole.opacity * edge * shimmer;
+        ctx.beginPath();
+        ctx.moveTo(left - width * 0.23, startY);
+        ctx.bezierCurveTo(
+          left - width * 0.95, midY - pole.sign * radius * 0.12,
+          tipX - width * 0.7, midY + pole.sign * radius * 0.07,
+          tipX, endY
+        );
+        ctx.bezierCurveTo(
+          tipX + width * 0.62, midY + pole.sign * radius * 0.07,
+          left + width * 1.05, midY - pole.sign * radius * 0.10,
+          left + width * 0.23, startY
+        );
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = i % 3 === 0 ? "#a6ffe5" : "#d0b0ff";
+        ctx.lineWidth = Math.max(0.75, radius * 0.012);
+        ctx.globalAlpha = strength * pole.opacity * edge * 0.20;
+        ctx.beginPath();
+        ctx.moveTo(left, startY);
+        ctx.quadraticCurveTo(left + curl * 0.25, midY, tipX, endY);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  // Drift clouds and polar curtains over the existing sphere surface.
   const previousDrawPlanet = drawPlanet;
   drawPlanet = function drawPlanetWithWeather() {
     previousDrawPlanet();
@@ -134,24 +197,8 @@
       ctx.lineTo(sx + radius * 0.08, sy + radius * 0.48);
       ctx.stroke();
     }
-    ctx.restore();
-
-    // Aurora arcs bloom progressively in later runs, without shadowBlur.
-    ctx.save();
-    ctx.lineCap = "round";
-    for (let i = 0; i < 2; i++) {
-      const drift = Math.sin(weatherTime * 0.6 + i * 1.8);
-      ctx.beginPath();
-      ctx.ellipse(
-        centerX, centerY - radius * (0.52 + i * 0.14),
-        radius * (1.08 + i * 0.1), radius * (0.28 + i * 0.04),
-        -0.12 + drift * 0.1, Math.PI * 1.05, Math.PI * 1.96
-      );
-      ctx.strokeStyle = i === 0 ? "#5ff5e3" : "#ca91ff";
-      ctx.globalAlpha = 0.11 + turbulence * 0.25 + intensity * 0.12;
-      ctx.lineWidth = 1.3 + i * 1.1 + turbulence;
-      ctx.stroke();
-    }
+    // Draw before restoring the planet clip: no light can float beyond its limb.
+    drawAuroraCurtains(radius, turbulence, intensity);
     ctx.restore();
   };
 
