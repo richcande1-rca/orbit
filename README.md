@@ -72,7 +72,8 @@ and cross safely. Power-ups are optional and can expire if ignored.
   earns **NEAR MISS** points. Consecutive near misses within nine seconds
   build a ×1–×4 combo (2, 4, 6, then 8 points).
 - Each piece of debris can pay a near-miss bonus just once per run. Nova must
-  remain on that ring briefly; changing lanes or being invulnerable cannot
-  manufacture a near miss. Collisions and comet hits break the combo.
+  spend time on the threatened ring before a narrow escape: rapid lane hopping
+  or invulnerability cannot manufacture a near miss. Real collisions and comet
+  impacts break the combo.
 - Pausing/reward screens suspend event timers. Rendering uses inexpensive arcs
   and one brief text popup; no additional sprite effects or new dependencies.
