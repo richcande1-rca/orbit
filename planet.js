@@ -83,6 +83,38 @@ function orbitBuildPlanetTexture() {
   return sheet;
 }
 
+// Render the same tilted ring as multiple fine, translucent dust lanes.
+// The back half is naturally occluded by the solid planet surface drawn next.
+function drawPlanetRingBands(radius, ringWidth, ringHeight, tilt, front) {
+  const begin = front ? 0 : Math.PI;
+  const end = front ? Math.PI : TAU;
+  const strands = front
+    ? [
+        { rx: 1, ry: 1, width: 0.052, color: "rgba(159,194,210,0.50)" },
+        { rx: 1.037, ry: 1.048, width: 0.014, color: "rgba(182,209,222,0.28)" },
+        { rx: 0.968, ry: 0.948, width: 0.017, color: "rgba(112,161,190,0.37)" },
+        // A hairline division gives the broad lane some grain rather than a solid strip.
+        { rx: 1.003, ry: 1.003, width: 0.010, color: "rgba(17,43,65,0.25)" },
+        { rx: 1.012, ry: 1.007, width: 0.008, color: "rgba(226,238,239,0.20)" },
+      ]
+    : [
+        { rx: 1, ry: 1, width: 0.050, color: "rgba(102,144,173,0.19)" },
+        { rx: 1.037, ry: 1.048, width: 0.013, color: "rgba(154,183,194,0.11)" },
+        { rx: 0.968, ry: 0.948, width: 0.016, color: "rgba(95,138,166,0.15)" },
+      ];
+  for (const strand of strands) {
+    ctx.beginPath();
+    ctx.ellipse(
+      centerX, centerY,
+      ringWidth * strand.rx, ringHeight * strand.ry,
+      tilt, begin, end
+    );
+    ctx.lineWidth = Math.max(front ? 0.75 : 0.65, radius * strand.width);
+    ctx.strokeStyle = strand.color;
+    ctx.stroke();
+  }
+}
+
 function drawPlanet() {
   const r = planetRadius;
   if (!(r > 0)) return;
@@ -102,12 +134,8 @@ function drawPlanet() {
     ctx.fill();
   }
 
-  // Back half of the existing ring, obscured by the globe.
-  ctx.strokeStyle = lowPower ? "rgba(109,174,212,0.42)" : "rgba(110,186,222,0.48)";
-  ctx.lineWidth = Math.max(4, r * 0.095);
-  ctx.beginPath();
-  ctx.ellipse(centerX, centerY, ringWidth, ringHeight, tilt, Math.PI, TAU);
-  ctx.stroke();
+  // Dust lanes behind the globe are faint and partially hidden by its body.
+  drawPlanetRingBands(r, ringWidth, ringHeight, tilt, false);
 
   const surface = orbitBuildPlanetTexture();
   if (surface) {
@@ -123,25 +151,30 @@ function drawPlanet() {
   // Weather belongs on the planet, UNDER the foreground ring.
   window.orbitRenderPlanetWeather?.();
 
-  // Subtle atmospheric rim; no neon bloom across the sphere.
-  ctx.strokeStyle = "rgba(124,191,220,0.23)";
-  ctx.lineWidth = Math.max(0.8, r * 0.016);
+  // A narrow cast shadow falls onto the planet, but not into space. Clip the
+  // offset arc to the globe so the ring feels suspended over the atmosphere.
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, r * 0.993, 0, TAU);
+  ctx.clip();
+  ctx.strokeStyle = "rgba(7,20,35,0.18)";
+  ctx.lineWidth = Math.max(2.0, r * 0.066);
+  ctx.beginPath();
+  ctx.ellipse(centerX, centerY + r * 0.039,
+    ringWidth, ringHeight, tilt, 0, Math.PI);
+  ctx.stroke();
+  ctx.restore();
+
+  // Retain a thin atmospheric rim without producing a neon outline.
+  ctx.strokeStyle = "rgba(124,191,220,0.21)";
+  ctx.lineWidth = Math.max(0.8, r * 0.015);
   ctx.beginPath();
   ctx.arc(centerX, centerY, r, 0, TAU);
   ctx.stroke();
 
-  // Preserve the familiar icy-blue front ring and its tilted perspective.
-  ctx.strokeStyle = lowPower ? "rgba(179,218,237,0.64)" : "rgba(184,224,245,0.72)";
-  ctx.lineWidth = Math.max(4, r * 0.095);
-  ctx.beginPath();
-  ctx.ellipse(centerX, centerY, ringWidth, ringHeight, tilt, 0, Math.PI);
-  ctx.stroke();
-
-  ctx.strokeStyle = "rgba(220,246,255,0.20)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.ellipse(centerX, centerY, ringWidth * 0.97, ringHeight * 0.95, tilt, 0, Math.PI);
-  ctx.stroke();
+  // Semi-transparent foreground ring, with a dark division and two
+  // subtly different dust tracks. Its angle and radius are unchanged.
+  drawPlanetRingBands(r, ringWidth, ringHeight, tilt, true);
 
   ctx.restore();
 }
