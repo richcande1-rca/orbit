@@ -150,6 +150,9 @@
     originalUpdate(dt);
     syncRun();
 
+    // A pause preserves earned boost time. Special completion cards and
+    // game-over screens cancel it so it cannot leak into the next run.
+    if (state === "paused") return;
     if (state !== "running") {
       stopBoost();
       return;
