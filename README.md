@@ -194,3 +194,14 @@ and cross safely. Power-ups are optional and can expire if ignored.
   collisions, pickup balance, FIRST LIGHT/BLOOM events, or later runs.
 - Both features reuse the existing canvas primitives, draw below Nova, and
   show a compact progress / timing prompt with no expensive filters.
+
+## Desktop arrow controls — build 2026.10.16.1
+
+- Add **Left Arrow** for inward movement and **Right Arrow** for outward
+  movement during active play. Both use the exact existing movement function,
+  including cooldown, lane restrictions, reward systems and hazards.
+- Keep **Space / Enter** moving outward and all mouse/touch controls unchanged.
+- Prevent arrow-key page scrolling during active play, without intercepting
+  text entry, modal title screens, or other non-running game states.
+- Respect the existing input hold/lock for reward cards and stage transitions.
+- Update desktop training instructions, build stamp, and changed script URLs.
