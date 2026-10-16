@@ -229,3 +229,20 @@ and cross safely. Power-ups are optional and can expire if ignored.
   existing records, cycle 2+ is encoded in the existing message field and
   decoded by the new client. The shared board still stores up to 20 entries,
   and the game displays the **Top 10**.
+
+## Earlier skill checks — build 2026.10.16.3
+
+- No new game mechanics: challenge comes from revised traffic combinations
+  and tighter timing on Normal and Hard. Easy retains its original opening
+  speeds and hazard counts.
+- Normal/Hard opening hazard speed multiplier changes: Run 1 **0.82→0.94**,
+  Run 2 **0.92→1.0**, before the existing difficulty scale.
+- Run 3 now pairs two well-separated hazards in one randomly chosen middle
+  orbit; Run 4 pressures two middle/outer orbits. Run 5 keeps reversed traffic
+  but includes two consistently contested lanes.
+- Run 6 preserves full crosscurrent, now spawning opposing debris apart.
+- Runs 7–9 contain additional paired threats on middle and outer rings,
+  including a reverse-moving pair. Run 8's safe corridor stays clear.
+- All base pairs start with an angular separation of at least 1.95 radians,
+  with at most two hazards per ring; all other cycles, events, and rewards
+  continue using the original gameplay rules.

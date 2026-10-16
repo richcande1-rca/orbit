@@ -345,6 +345,24 @@ function createOrbitHazard(lane, speedScale, reverseFlow = false) {
 makeHazards = function makeHazardsWithRunIdentity() {
   const speedScale = 1 + (level - 1) * 0.13;
   const reverseFlow = level === orbitCounterflowRun;
+  // Readable traffic patterns make each ring change a real timing choice.
+  // Easy keeps its previous counts; Normal/Hard get deliberate pairs.
+  const earlyPressure = (window.orbitGetDifficulty?.() || "normal") !== "easy";
+  const pairedLanes = new Set();
+  if (earlyPressure) {
+    if (level === 3) pairedLanes.add(Math.random() < 0.5 ? 2 : 3);
+    else if (level === 4) {
+      pairedLanes.add(2);
+      pairedLanes.add(Math.random() < 0.5 ? 3 : 4);
+    } else if (level === 5) {
+      pairedLanes.add(2);
+      pairedLanes.add(3);
+    } else if (level >= 7 && level <= 9) {
+      pairedLanes.add(2);
+      pairedLanes.add(3);
+      pairedLanes.add(4);
+    }
+  }
   hazards = [];
   orbitSafeLane = -1;
   orbitSafeLaneUntil = 0;
@@ -361,14 +379,26 @@ makeHazards = function makeHazardsWithRunIdentity() {
     if (lane === orbitSafeLane) continue;
 
     if (level === orbitCrosscurrentRun) {
-      hazards.push(createOrbitHazard(lane, speedScale, false));
-      hazards.push(createOrbitHazard(lane, speedScale, true));
+      const first = createOrbitHazard(lane, speedScale, false);
+      const second = createOrbitHazard(lane, speedScale, true);
+      second.angle = (first.angle + rand(2.0, TAU - 2.0)) % TAU;
+      hazards.push(first, second);
       continue;
     }
 
-    const count = 1 + (level > 3 && Math.random() < 0.52 ? 1 : 0);
-    for (let i = 0; i < count; i++) {
-      hazards.push(createOrbitHazard(lane, speedScale, reverseFlow));
+    const paired = pairedLanes.has(lane);
+    const count = paired ? 2 : 1 + (level > 3 && Math.random() < 0.52 ? 1 : 0);
+    const lead = createOrbitHazard(lane, speedScale, reverseFlow);
+    hazards.push(lead);
+    if (count > 1) {
+      // One reverse-moving pair in later runs; preserve Run 5's wholly
+      // reversed lanes and Run 6's unique full-field crosscurrent.
+      const contested = paired && level >= 7 &&
+        (lane === 3 || (level === 8 && lane === 2 && orbitSafeLane === 3));
+      const follower = createOrbitHazard(lane, speedScale, contested ? !reverseFlow : reverseFlow);
+      // Initial spacing guarantees no newly generated instant double hits.
+      follower.angle = (lead.angle + rand(1.95, TAU - 1.95)) % TAU;
+      hazards.push(follower);
     }
   }
 };
