@@ -84,8 +84,9 @@
   update = function updateWithPlanetaryWeather(dt) {
     originalUpdate(dt);
     if (state === "paused") return;
-    // Keep clouds alive on the training screen; freeze hazards outside gameplay.
-    weatherTime += dt * (state === "running" ? 1 : 0.4);
+    // Keep the same visible planetary rotation while waiting and after game
+    // over; only an explicit pause freezes the animation and hazard timers.
+    weatherTime += dt;
     if (observedRun !== level) resetStormForRun();
     if (state === "running") advanceStorm(dt);
   };
