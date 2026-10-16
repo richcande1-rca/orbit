@@ -77,3 +77,18 @@ and cross safely. Power-ups are optional and can expire if ignored.
   impacts break the combo.
 - Pausing/reward screens suspend event timers. Rendering uses inexpensive arcs
   and one brief text popup; no additional sprite effects or new dependencies.
+
+## Living planet — October 15 (build 2026.10.15.3)
+
+- Low-cost, animated atmospheric cloud bands and green-violet auroras respond
+  subtly to the campaign's progress. They are visual only.
+- Run 5 introduces an **ION STORM** created by the planet. An inner-middle ring
+  flashes amber with a 2.0-second warning before glowing electric cyan for
+  3.0 seconds. Leave the marked ring or time your crossing.
+- The active charged ring uses the normal debris crash logic: one-life damage,
+  shield protection, test-mode invincibility, and normal recovery/invulnerability.
+  A shield save nudges Nova into a safe adjacent orbit rather than trapping it.
+- Weather is drawn over the existing planet with only a handful of strokes.
+  Storm arcs are drawn beneath Nova and hazards and require no new resources.
+- No changes to core movement timing, standard collision geometry, gravity
+  pulses, or the SPACE WARP ending. No volcanic fragments yet.
