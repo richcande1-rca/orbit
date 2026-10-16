@@ -205,3 +205,27 @@ and cross safely. Power-ups are optional and can expire if ignored.
   text entry, modal title screens, or other non-running game states.
 - Respect the existing input hold/lock for reward cards and stage transitions.
 - Update desktop training instructions, build stamp, and changed script URLs.
+
+## Endless cycles + automatic STARBOARD — build 2026.10.16.2
+
+- Clearing Run 12 opens SPACE WARP into **Cycle 2** rather than ending the
+  game. Continue through repeated 12-run chapters, retaining accumulated
+  score, earned stars, remaining lives, and chosen difficulty.
+- Recycle FIRST LIGHT, BLOOM, GRAVITY LENS, Run 5 ion storms, and late-run
+  events every cycle. Difficulty escalates by up to 28% additional baseline
+  debris speed, and cycles 2+ introduce selective extra counter-traffic
+  beginning in Run 3. Early runs remain playable, and speeds are capped.
+- Score, lives, run and cycle are visible in the HUD. SPACE WARP announces
+  the next cycle and waits for user confirmation; it never submits a score.
+- When Nova actually runs out of lives, show the existing Cloudflare D1
+  STARBOARD automatically with final score, cycle, run and **Top 10** rankings.
+  Only qualifying final scores prompt for 1–3 initials; once submitted, the
+  entry cannot be posted twice. A Play Again button begins a fresh game.
+- The STARBOARD can still be opened manually during play, but it is now
+  read-only until Game Over. Cloud failure falls back to local scores, with
+  an explicit local-only status.
+- The currently deployed worker supports runs 1–12 and 20 saved entries,
+  with no separate cycle column; to avoid database migrations or disrupting
+  existing records, cycle 2+ is encoded in the existing message field and
+  decoded by the new client. The shared board still stores up to 20 entries,
+  and the game displays the **Top 10**.
