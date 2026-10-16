@@ -1,6 +1,12 @@
 // Adds the Orbit screen arc without changing the core renderer.
 // Training -> reward run cards -> space warp completion.
 const orbitFinalRun = 12;
+let orbitCycle = 1;
+const orbitCycleLabel = document.getElementById("cycle");
+window.orbitGetCycle = () => orbitCycle;
+function orbitShowCycle() {
+  if (orbitCycleLabel) orbitCycleLabel.textContent = orbitCycle;
+}
 const orbitMoveCooldownSeconds = 0.4;
 const orbitLevelHoldMs = 700;
 const orbitLayerCardMs = 950;
@@ -174,6 +180,8 @@ function stopOrbitInput(event) {
 
 const orbitOriginalStartGame = startGame;
 startGame = function startGameWithOrbitDifficulty() {
+  orbitCycle = 1;
+  orbitShowCycle();
   cancelOrbitFirstLight();
   cancelOrbitBloom();
   cancelOrbitGravityLens();
@@ -406,6 +414,11 @@ function updateOrbitPhaseShift() {
 }
 
 function advanceOrbitToNextRun() {
+  if (level >= orbitFinalRun) {
+    // The twelfth finish opens a warp gate, not the end-of-game board.
+    showOrbitCompleteScreen();
+    return;
+  }
   level += 1;
   levelStarsCollected = 0;
   player.lane = 0;
@@ -1175,6 +1188,8 @@ function showOrbitTrainingScreen() {
     "Run 2: enter the moving gold SURGE arc for a speed boost.",
     "Extra life: 3 stars Easy · 5 Normal · 6 Hard.",
     "Jump outward past the outer ring to clear a run.",
+    "Survive Run 12 to enter the next, harder 12-run cycle.",
+    "The STARBOARD appears after Nova's final life is lost.",
     "Press 1 / 2 / 3 for Easy / Normal / Hard hazards.",
     "Collect mid-run power-ups: shield, slow field, and +1 life.",
     "Comet damage depends on difficulty; shields block one hit.",
@@ -1230,14 +1245,40 @@ function showOrbitCompleteScreen() {
   holdOrbitInput(orbitSpecialHoldMs);
 
   setOrbitScreen("SPACE WARP", [
-    "Run 12 cleared.",
-    "You broke orbit.",
-    "The debris field collapses behind you.",
-    "The stars stretch into light.",
-    `Final score: ${score}`,
-    "Tap the blue planet to restart.",
+    "Cycle " + orbitCycle + " cleared — all 12 runs survived!",
+    "Score: " + score + " · Lives: " + lives,
+    "Next: Cycle " + (orbitCycle + 1) + " — ORBIT DESTABILIZED.",
+    "Faster debris and new counterflow patterns await.",
+    "Tap anywhere / press Space to enter the next cycle.",
   ], "warp");
   updateHud("");
+  updateControlButtons();
+}
+
+function continueFromOrbitWarp() {
+  if (state !== "complete") return;
+  orbitCycle += 1;
+  orbitShowCycle();
+  // A fresh twelve-run chapter, but NEVER reset the score, remaining lives,
+  // accumulated stars, or difficulty selected by the player.
+  state = "running";
+  level = 1;
+  levelStarsCollected = 0;
+  player.lane = 0;
+  player.angle = -Math.PI / 2;
+  moveCooldown = 0;
+  invulnerable = 1.35;
+  orbitRewardSeen = new Set();
+  orbitCompleteShown = false;
+  orbitLastSeenLevel = 1;
+  orbitPostRewardJump = false;
+  orbitInputUnlockAt = 0;
+  orbitLayerHideAt = 0;
+  applyRingCountForLevel();
+  makeHazards();
+  placeBonusStar();
+  instructionEl.classList.add("hidden");
+  updateHud("CYCLE " + orbitCycle + " — ORBIT DESTABILIZED!");
   updateControlButtons();
 }
 
@@ -1246,7 +1287,7 @@ function watchOrbitProgress() {
   updateOrbitBloom();
   updateOrbitGravityLens();
 
-  if (state === "running" && level === 1 && score === 0) {
+  if (state === "running" && orbitCycle === 1 && level === 1 && score === 0) {
     orbitRewardSeen = new Set();
     orbitCompleteShown = false;
     orbitLastSeenLevel = 1;
@@ -1260,9 +1301,7 @@ function watchOrbitProgress() {
     orbitLastSeenLevel = level;
 
     if (advanced) {
-      if (!orbitCompleteShown && level > orbitFinalRun) {
-        showOrbitCompleteScreen();
-      } else if (showOrbitRewardForLevel(level)) {
+      if (showOrbitRewardForLevel(level)) {
         // Fullscreen reward card is now waiting for the player.
       } else {
         showOrbitLayerCard(level);
@@ -1270,9 +1309,7 @@ function watchOrbitProgress() {
     }
   }
 
-  if (state === "running" && !orbitCompleteShown && level > orbitFinalRun) {
-    showOrbitCompleteScreen();
-  } else if (state === "running") {
+  if (state === "running") {
     showOrbitRewardForLevel(level);
   }
 
@@ -1299,12 +1336,7 @@ canvas.addEventListener(
       return;
     }
 
-    if (!tappedPlanet(event)) {
-      updateHud("Tap the blue planet to restart.");
-      return;
-    }
-
-    startGame();
+    continueFromOrbitWarp();
   },
   { passive: false, capture: true }
 );
@@ -1346,7 +1378,7 @@ window.addEventListener(
 
     if (state === "complete") {
       stopOrbitInput(event);
-      startGame();
+      continueFromOrbitWarp();
     }
   },
   { capture: true }
