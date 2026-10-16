@@ -138,79 +138,8 @@ function drawPlanet() {
   ctx.fillStyle = nightSide;
   ctx.fillRect(centerX - planetRadius, centerY - planetRadius, planetRadius * 2, planetRadius * 2);
 
-  ctx.globalCompositeOperation = "lighter";
-  ctx.shadowBlur = 10;
-  ctx.shadowColor = "rgba(165, 242, 255, 0.46)";
-
-  const bandGradient = ctx.createLinearGradient(
-    centerX - planetRadius,
-    centerY,
-    centerX + planetRadius,
-    centerY
-  );
-  bandGradient.addColorStop(0, "rgba(157, 216, 255, 0.02)");
-  bandGradient.addColorStop(0.32, `rgba(189, 243, 255, ${0.08 + shimmer * 0.04})`);
-  bandGradient.addColorStop(0.62, `rgba(119, 186, 255, ${0.12 + shimmer * 0.04})`);
-  bandGradient.addColorStop(1, "rgba(157, 216, 255, 0.02)");
-  ctx.fillStyle = bandGradient;
-
-  const cloudBands = [
-    { y: -0.28, h: 0.12, w: 1.5, bow: -0.08 },
-    { y: -0.03, h: 0.16, w: 1.65, bow: 0.07 },
-    { y: 0.24, h: 0.13, w: 1.34, bow: -0.06 },
-  ];
-
-  for (const band of cloudBands) {
-    const y = centerY + planetRadius * band.y;
-    const half = planetRadius * band.w * 0.5;
-    const bandHeight = planetRadius * band.h;
-
-    ctx.beginPath();
-    ctx.moveTo(centerX - half, y - bandHeight * 0.5);
-    ctx.bezierCurveTo(
-      centerX - half * 0.35,
-      y + planetRadius * band.bow - bandHeight,
-      centerX + half * 0.25,
-      y - planetRadius * band.bow - bandHeight * 0.4,
-      centerX + half,
-      y - bandHeight * 0.35
-    );
-    ctx.lineTo(centerX + half, y + bandHeight * 0.45);
-    ctx.bezierCurveTo(
-      centerX + half * 0.28,
-      y - planetRadius * band.bow + bandHeight,
-      centerX - half * 0.2,
-      y + planetRadius * band.bow + bandHeight * 0.35,
-      centerX - half,
-      y + bandHeight * 0.5
-    );
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  const storm = ctx.createRadialGradient(
-    centerX - planetRadius * 0.24,
-    centerY + planetRadius * 0.18,
-    0,
-    centerX - planetRadius * 0.24,
-    centerY + planetRadius * 0.18,
-    planetRadius * 0.28
-  );
-  storm.addColorStop(0, "rgba(151, 247, 255, 0.22)");
-  storm.addColorStop(0.58, "rgba(93, 183, 255, 0.08)");
-  storm.addColorStop(1, "rgba(151, 247, 255, 0)");
-  ctx.fillStyle = storm;
-  ctx.beginPath();
-  ctx.ellipse(
-    centerX - planetRadius * 0.24,
-    centerY + planetRadius * 0.18,
-    planetRadius * 0.26,
-    planetRadius * 0.16,
-    -0.36,
-    0,
-    TAU
-  );
-  ctx.fill();
+  // Clouds and the rotating storm are rendered separately by orbit-weather.js.
+  // Leave this base surface smooth so old painted stripes never show through.
 
   ctx.restore();
 
