@@ -209,32 +209,46 @@
     cycloneSheet = storm;
   }
 
+  // Roughly one full turn every 94 seconds. View-facing cloud banks follow
+  // projected longitude, narrow toward the limb, and disappear behind the
+  // terminator instead of bouncing side-to-side over the same hemisphere.
   function drawMovingClouds(radius, turbulence, stormIntensity) {
     prepareCloudSheets();
     if (!cloudSheet || !cycloneSheet) return;
-
-    const driftX = Math.sin(weatherTime * 0.22) * radius * 0.065;
-    const driftY = Math.cos(weatherTime * 0.16) * radius * 0.028;
-    const diameter = radius * 2.06;
-
+    const rotation = (weatherTime * 0.067) % TAU;
+    const diameter = radius * 1.86;
     ctx.save();
     ctx.globalCompositeOperation = "screen";
-    ctx.globalAlpha = Math.min(0.72, 0.43 + turbulence * 0.07 + stormIntensity * 0.16);
-    ctx.drawImage(
-      cloudSheet, centerX - diameter * 0.5 + driftX,
-      centerY - diameter * 0.5 + driftY, diameter, diameter
-    );
+    for (let bank = 0; bank < 2; bank++) {
+      const longitude = rotation + bank * Math.PI;
+      const facing = Math.max(0, Math.cos(longitude));
+      if (facing <= 0.02) continue;
+      const projectedX = centerX + Math.sin(longitude) * radius * 0.49;
+      const projectedWidth = diameter * (0.44 + facing * 0.56);
+      const driftY = Math.sin(weatherTime * 0.11 + bank * 1.6) * radius * 0.018;
+      ctx.globalAlpha = (0.26 + turbulence * 0.05 + stormIntensity * 0.13) * facing;
+      ctx.save();
+      ctx.translate(projectedX, centerY + driftY);
+      if (bank === 1) ctx.scale(-1, 1);
+      ctx.drawImage(cloudSheet, -projectedWidth * 0.5, -diameter * 0.5,
+        projectedWidth, diameter);
+      ctx.restore();
+    }
 
-    // The storm system is distinct from the cloud banks: a rotating eye near
-    // the equator, brighter and slightly more turbulent during ion storms.
-    const cycloneX = centerX + radius * (0.21 + Math.sin(weatherTime * 0.13) * 0.035);
-    const cycloneY = centerY + radius * (0.18 + Math.cos(weatherTime * 0.12) * 0.026);
-    ctx.translate(cycloneX, cycloneY);
-    ctx.rotate(weatherTime * (0.055 + turbulence * 0.025 + stormIntensity * 0.035));
-    ctx.scale(0.94, 0.76);
-    ctx.globalAlpha = Math.min(0.76, 0.49 + turbulence * 0.09 + stormIntensity * 0.16);
-    const eyeSize = radius * 1.21;
-    ctx.drawImage(cycloneSheet, -eyeSize * 0.5, -eyeSize * 0.5, eyeSize, eyeSize);
+    // The storm shares the same longitude as the atmospheric circulation.
+    // It enters from the limb, travels across the face, and fades behind it.
+    const stormLongitude = rotation + 0.23;
+    const facing = Math.max(0, Math.cos(stormLongitude));
+    if (facing > 0.04) {
+      const cycloneX = centerX + Math.sin(stormLongitude) * radius * 0.73;
+      const cycloneY = centerY + radius * 0.18;
+      const eyeSize = radius * 1.08;
+      ctx.translate(cycloneX, cycloneY);
+      ctx.rotate(weatherTime * (0.045 + turbulence * 0.023 + stormIntensity * 0.03));
+      ctx.scale(Math.max(0.18, facing) * 0.94, 0.77);
+      ctx.globalAlpha = (0.37 + turbulence * 0.08 + stormIntensity * 0.16) * facing;
+      ctx.drawImage(cycloneSheet, -eyeSize * 0.5, -eyeSize * 0.5, eyeSize, eyeSize);
+    }
     ctx.restore();
   }
 
