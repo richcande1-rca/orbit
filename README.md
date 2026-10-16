@@ -100,3 +100,15 @@ and cross safely. Power-ups are optional and can expire if ignored.
   clipped to the planet's disk, with tapered ribbons and faded globe edges.
 - Auroras brighten in later runs and electrical storms without expensive
   blur effects or changes to the existing hazards and controls.
+
+## Atmospheric cloudscape (build 2026.10.15.5)
+
+- Remove both sets of horizontal stripes: the original planet surface bands
+  and the five drawn-in-motion weather lines.
+- Add three irregular, broken atmospheric cloud regions with varied blue haze,
+  softened edges and stronger limb fading.
+- Add a compact, recognizable rotating cyclone with a bright eye; it intensifies
+  slightly during Run 5's ion storm and as the campaign advances.
+- Cache cloud banks and cyclone artwork in two small canvases on first use:
+  only two transformed `drawImage` calls per weather frame, not dozens of
+  live gradients. Preserve auroras, existing storm damage, controls and physics.
