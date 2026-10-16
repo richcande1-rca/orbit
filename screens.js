@@ -1165,6 +1165,7 @@ function showOrbitTrainingScreen() {
     "Collect mid-run power-ups: shield, slow field, and +1 life.",
     "Comet damage depends on difficulty; shields block one hit.",
     "Close calls earn NEAR MISS combos; gravity pulses can accelerate debris.",
+    "On Run 5, escape the flashing storm-charged orbit before its countdown ends.",
   ]);
   updateHud("");
   updateControlButtons();
