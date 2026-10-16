@@ -3,7 +3,7 @@
   titleScreen.className = "title-screen";
   titleScreen.setAttribute("aria-label", "Opening title screen");
 
-  const orbitBuildStamp = "Orbit build 2026.10.15.2";
+  const orbitBuildStamp = "Orbit build 2026.10.15.3";
 
   const skipButton = document.createElement("button");
   skipButton.className = "title-skip";
@@ -66,6 +66,7 @@
         "Stars add points and lives. Comets hurt.",
         "Earn near-miss bonuses by narrowly dodging debris.",
         "Look for GRAVITY PULSE warnings on later runs.",
+        "The planet creates a warned ion storm on Run 5.",
       ],
       button: "ENTER ORBIT",
       hint: "",
