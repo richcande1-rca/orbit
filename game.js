@@ -851,6 +851,7 @@ if (resetButton) {
   });
 }
 window.addEventListener("keydown", (event) => {
+  if (window.orbitIsStarboardOpen?.()) return;
   if (event.code === "ArrowLeft" || event.code === "ArrowRight") {
     // Don't hijack arrow navigation in inputs or editable controls.
     const target = event.target;
