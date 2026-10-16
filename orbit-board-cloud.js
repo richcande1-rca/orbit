@@ -73,6 +73,11 @@
   catch (error) { /* Cloud remains usable when storage is blocked. */ }
 
   nameInput.addEventListener("input", () => { nameInput.value = initials(nameInput.value); });
+  nameInput.addEventListener("keydown", (event) => {
+    if (event.code !== "Enter") return;
+    event.preventDefault();
+    signBoard();
+  });
 
   function loadLocal() {
     try {
