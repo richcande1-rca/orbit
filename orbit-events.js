@@ -363,6 +363,7 @@
 
     updateHud("");
     updateControlButtons();
+    window.orbitOnFinalGameOver?.();
   }
 
   function endRunByComet() {
@@ -572,7 +573,7 @@
   canvas.addEventListener(
     "pointerdown",
     (event) => {
-      if (state !== "gameover") return;
+      if (state !== "gameover" || window.orbitIsStarboardOpen?.()) return;
 
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -590,7 +591,7 @@
   window.addEventListener(
     "keydown",
     (event) => {
-      if (state !== "gameover") return;
+      if (state !== "gameover" || window.orbitIsStarboardOpen?.()) return;
       if (event.code !== "Space" && event.code !== "Enter") return;
 
       event.preventDefault();
