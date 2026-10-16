@@ -92,3 +92,11 @@ and cross safely. Power-ups are optional and can expire if ignored.
   Storm arcs are drawn beneath Nova and hazards and require no new resources.
 - No changes to core movement timing, standard collision geometry, gravity
   pulses, or the SPACE WARP ending. No volcanic fragments yet.
+
+## Polar aurora visual correction (build 2026.10.15.4)
+
+- Remove detached hovering halo strokes above the planet.
+- Replace them with irregular, animated cyan-green/violet polar curtains
+  clipped to the planet's disk, with tapered ribbons and faded globe edges.
+- Auroras brighten in later runs and electrical storms without expensive
+  blur effects or changes to the existing hazards and controls.
