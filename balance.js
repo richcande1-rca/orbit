@@ -11,7 +11,10 @@ const baseMakeHazardsForBalance = makeHazards;
 makeHazards = function makeHazardsWithEarlyRunMercy() {
   baseMakeHazardsForBalance();
 
-  const earlyRunSpeedScale = level === 1 ? 0.82 : level === 2 ? 0.92 : 1;
+  // Easy remains a genuine training mode; Normal/Hard must earn a clean climb.
+  const easy = window.orbitGetDifficulty?.() === "easy";
+  const earlyRunSpeedScale = level === 1 ? (easy ? 0.82 : 0.94)
+    : level === 2 ? (easy ? 0.92 : 1) : 1;
   if (earlyRunSpeedScale === 1) return;
 
   for (const hazard of hazards) {
