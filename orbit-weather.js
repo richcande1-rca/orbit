@@ -11,6 +11,10 @@
   let cycloneSheet = null;
 
   let weatherTime = 0;
+  // The same clock drives the opaque cloud globe AND its translucent storms.
+  // At this pace the movement is recognizable after just a few seconds.
+  const PLANET_ROTATION_RATE = 0.13; // ~48 seconds per revolution
+  window.orbitPlanetRotationAngle = () => weatherTime * PLANET_ROTATION_RATE;
   let observedRun = level;
   let stormStage = "done";
   let stormLane = -1;
@@ -209,13 +213,13 @@
     cycloneSheet = storm;
   }
 
-  // Roughly one full turn every 94 seconds. View-facing cloud banks follow
+  // Roughly one full turn every 48 seconds. View-facing cloud banks follow
   // projected longitude, narrow toward the limb, and disappear behind the
   // terminator instead of bouncing side-to-side over the same hemisphere.
   function drawMovingClouds(radius, turbulence, stormIntensity) {
     prepareCloudSheets();
     if (!cloudSheet || !cycloneSheet) return;
-    const rotation = (weatherTime * 0.067) % TAU;
+    const rotation = window.orbitPlanetRotationAngle() % TAU;
     const diameter = radius * 1.86;
     ctx.save();
     ctx.globalCompositeOperation = "screen";
