@@ -51,12 +51,14 @@
   }
 
   function pressure() {
-    // Easy keeps its original hazards. On other modes, clean crossings earn
-    // stronger traffic, with a further ramp in the final half of the campaign.
-    if (mode() === "easy") return 1;
+    // Each completed cycle escalates modestly, capped to preserve playable
+    // timing. Secondary counterflow changes the decisions, not just speed.
+    const cycle = Math.max(1, window.orbitGetCycle?.() || 1);
+    const cyclePressure = Math.min(0.28, (cycle - 1) * 0.08);
+    if (mode() === "easy") return 1 + cyclePressure;
     const lateRun = Math.max(0, Math.min(8, level - 4)) * 0.028;
     const momentum = Math.min(5, cleanStreak) * 0.045;
-    return 1 + lateRun + momentum;
+    return 1 + cyclePressure + lateRun + momentum;
   }
 
   function scale() {
@@ -125,11 +127,18 @@
 
   function addCrossTraffic() {
     const difficulty = mode();
-    if (difficulty === "easy" || level < 6 || level > 12) return;
+    const cycle = Math.max(1, window.orbitGetCycle?.() || 1);
+    if (level > 12 || level < (cycle === 1 ? 6 : 3)) return;
+    if (difficulty === "easy" && cycle === 1) return;
 
-    // A limited number of opposing hazards introduces interesting timing
-    // choices, not a solid wall. Leave Run 6's special crosscurrent untouched.
-    const count = level >= 12 && difficulty === "hard" ? 2
+    // The first two runs remain an introduction, even in later cycles.
+    // Further cycles add a limited counter-moving lane starting at Run 3.
+    // Retain each run's distinctive patterns, including Run 6 crosscurrent.
+    const count = cycle > 1
+      ? (level === 6 ? 0
+        : difficulty === "easy" ? (cycle >= 3 && Math.random() < 0.5 ? 1 : 0)
+        : Math.random() < Math.min(0.9, 0.55 + (cycle - 2) * 0.10) ? 1 : 0)
+      : level >= 12 && difficulty === "hard" ? 2
       : level >= 8 ? 1
       : Math.random() < (level === 6 ? 0.35 : 0.6) ? 1 : 0;
     const freeLanes = [];

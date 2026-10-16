@@ -175,3 +175,43 @@
     font-size: 0.76rem;
   }
 }
+
+
+/* End-of-game pinball-style score presentation. */
+.orbit-board .is-hidden { display: none !important; }
+.orbit-board-final {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 222, 137, 0.33);
+  border-radius: 16px;
+  background: radial-gradient(circle at center, rgba(178, 109, 42, 0.15), rgba(10, 15, 43, 0.66));
+  text-align: center;
+}
+.orbit-board-final-title {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  color: #ffcda5;
+}
+.orbit-board-final-score {
+  font-size: clamp(1.7rem, 7vw, 3rem);
+  color: #fff2bd;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 14px rgba(255, 203, 94, 0.35);
+  font-variant-numeric: tabular-nums;
+}
+.orbit-board-final-progress,
+.orbit-board-final-verdict {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+.orbit-board-final-verdict { color: #86e6ff; }
+@media (max-width: 720px) {
+  .orbit-board { padding: max(60px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)); }
+  .orbit-board-card { max-height: calc(100dvh - 72px); padding: 12px; gap: 8px; }
+  .orbit-board-entry { padding: 7px 10px; }
+}

@@ -363,6 +363,7 @@
 
     updateHud("");
     updateControlButtons();
+    window.orbitOnFinalGameOver?.();
   }
 
   function endRunByComet() {
@@ -395,6 +396,9 @@
 
   function updateCometSystem(dt) {
     if (cometObservedLevel !== level) {
+      // Run numbers wrap from 12 to 1 at SPACE WARP. Re-arm Run 10's
+      // twin-comet sequence in every new cycle, not only the first.
+      if (level < cometObservedLevel) cometTwinTriggeredRun = 0;
       cometObservedLevel = level;
       cometTwinPending = false;
       cometTwinSecondQueued = false;
@@ -572,7 +576,7 @@
   canvas.addEventListener(
     "pointerdown",
     (event) => {
-      if (state !== "gameover") return;
+      if (state !== "gameover" || window.orbitIsStarboardOpen?.()) return;
 
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -590,7 +594,7 @@
   window.addEventListener(
     "keydown",
     (event) => {
-      if (state !== "gameover") return;
+      if (state !== "gameover" || window.orbitIsStarboardOpen?.()) return;
       if (event.code !== "Space" && event.code !== "Enter") return;
 
       event.preventDefault();
