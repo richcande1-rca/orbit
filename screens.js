@@ -1064,6 +1064,12 @@ draw = function drawWithOrbitStageEvents() {
 };
 
 function orbitLayerForRun(run) {
+  if (run === 12) {
+    return {
+      title: "RINGFALL",
+      line: "Ice is breaking loose. Watch the warning trail.",
+    };
+  }
   if (run === orbitCounterflowRun) {
     return {
       title: "COUNTERFLOW",
