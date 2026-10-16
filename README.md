@@ -175,3 +175,22 @@ and cross safely. Power-ups are optional and can expire if ignored.
 - CPU updates are limited to a change of one source-map column (~8 updates
   per second); the noise map and sphere sampling geometry are cached.
 - Preserve the existing dust rings, hazards, shields, Ringfall, and SPACE WARP.
+
+## Early arcade opportunities — build 2026.10.15.10
+
+- Run 1 now features **STAR CHASE**: three distinct gold collectible targets
+  across rings 2–4, awarded in sequence for +3, +5 and +8 points. Each target
+  has an 8-second window. If missed, the chain simply ends; normal scoring,
+  debris and FIRST LIGHT finale continue.
+- Run 2 now features **ORBITAL SURGE**: a bright gold segment moving around
+  the third orbit. Enter its sector at the right time for +6 points and 2.4
+  seconds of +25% angular movement speed (not invulnerability). Camping the
+  ring or touching the segment long after entering pays nothing. The surge
+  bonus is limited to once per run and never leaves the early levels.
+- Initial star-chain placement, and the direction and start position of
+  the moving sector, have small controlled variations between attempts.
+- Both options are voluntary skill rewards, not additional enemies or extra
+  lives. Easy offers a wider capture window. No changes to existing hazard
+  collisions, pickup balance, FIRST LIGHT/BLOOM events, or later runs.
+- Both features reuse the existing canvas primitives, draw below Nova, and
+  show a compact progress / timing prompt with no expensive filters.
