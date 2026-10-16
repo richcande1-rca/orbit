@@ -1,7 +1,14 @@
 // Orbit's planet: a cached, softly lit gas giant beneath the original ring system.
 // All expensive atmosphere noise is generated once. Nova and orbital physics unchanged.
 const orbitPlanetTextureSize = 256;
+const orbitPlanetMapWidth = 384;
+const orbitPlanetMapHeight = 160;
 let orbitPlanetTexture = null;
+let orbitPlanetSurfaceMap = null;
+let orbitPlanetSurfaceCtx = null;
+let orbitPlanetImage = null;
+let orbitPlanetSamples = null;
+let orbitPlanetLastPhase = -1;
 
 function orbitPlanetHash(x, y) {
   const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453123;
@@ -31,56 +38,119 @@ function orbitPlanetFractal(x, y) {
   return sum / weight;
 }
 
-function orbitBuildPlanetTexture() {
-  if (orbitPlanetTexture) return orbitPlanetTexture;
-  const sheet = document.createElement("canvas");
-  sheet.width = sheet.height = orbitPlanetTextureSize;
-  const g = sheet.getContext("2d");
-  if (!g) return null;
-  const image = g.createImageData(orbitPlanetTextureSize, orbitPlanetTextureSize);
-  const pixels = image.data;
-  const size = orbitPlanetTextureSize;
-  for (let y = 0; y < size; y++) {
-    const ny = (y + 0.5 - size / 2) / (size / 2);
-    for (let x = 0; x < size; x++) {
-      const nx = (x + 0.5 - size / 2) / (size / 2);
-      const r2 = nx * nx + ny * ny;
-      if (r2 >= 1) continue;
-      const z = Math.sqrt(1 - r2);
-      // Project the texture across a curved hemisphere, rather than a flat disk.
-      const longitude = Math.atan2(nx, z);
-      const latitude = Math.asin(ny);
-      const warp = orbitPlanetFractal(longitude * 1.25 + 9.2, latitude * 2.2 + 4.1) - 0.5;
+// A wrapping longitude/latitude cloud map. The entire atmospheric texture,
+// not merely a faint overlay, travels across the spherical projection.
+function orbitBuildPlanetMap() {
+  if (orbitPlanetSurfaceMap) return;
+  const width = orbitPlanetMapWidth, height = orbitPlanetMapHeight;
+  const pixels = new Uint8ClampedArray(width * height * 4);
+  for (let y = 0; y < height; y++) {
+    const latitude = ((y + 0.5) / height - 0.5) * Math.PI;
+    for (let x = 0; x < width; x++) {
+      const longitude = ((x + 0.5) / width) * TAU;
+      // Periodic coordinates avoid a visible vertical seam every rotation.
+      const cx = Math.cos(longitude), cy = Math.sin(longitude);
+      const warp = orbitPlanetFractal(
+        cx * 2.25 + latitude * 0.8 + 9.2,
+        cy * 2.25 + latitude * 1.1 + 4.1
+      ) - 0.5;
       const clouds = orbitPlanetFractal(
-        longitude * 4.4 + warp * 2.7 + 8.7,
-        latitude * 6.1 + warp * 1.8 + 12.3
+        cx * 3.8 + latitude * 2.7 + warp * 2.6 + 8.7,
+        cy * 3.8 - latitude * 2.4 + warp * 1.8 + 12.3
       );
       const filaments = orbitPlanetFractal(
-        longitude * 10.5 + warp * 3.4,
-        latitude * 12.7 - warp * 2.4 + 3.7
+        cx * 8.7 + latitude * 7.2 + warp * 3.1,
+        cy * 8.7 - latitude * 5.2 - warp * 2.2 + 3.7
       );
-      // A hint of atmospheric circulation, broken up by turbulent cloud noise.
-      const circulation = Math.sin(latitude * 8.2 + warp * 2.5) * 0.045;
+      const circulation = Math.sin(latitude * 8.2 + warp * 2.5) * 0.04;
+      // One broad distinguishable storm region makes motion noticeable.
+      const dLon = Math.atan2(Math.sin(longitude - 0.42), Math.cos(longitude - 0.42));
+      const storm = Math.exp(
+        -1.7 * (dLon / 0.43) ** 2 -
+        1.5 * ((latitude - 0.21) / 0.28) ** 2
+      );
       const density = Math.max(0, Math.min(1,
-        (clouds - 0.35) * 2.0 + (filaments - 0.5) * 0.48 + circulation
+        (clouds - 0.34) * 2.1 +
+        (filaments - 0.5) * 0.47 + circulation +
+        storm * 0.27
       ));
-      const cloudLight = 0.23 + Math.pow(density, 1.25) * 0.77;
-      const shadow = 0.30 + 0.70 * Math.pow(
-        Math.max(0, nx * -0.38 + ny * -0.29 + z * 0.88), 0.86
-      );
-      const curvedLimb = 0.72 + 0.28 * Math.min(1, z / 0.55);
-      const shade = shadow * curvedLimb;
-      const offset = (y * size + x) * 4;
-      pixels[offset] = Math.round((30 + 108 * cloudLight) * shade);
-      pixels[offset + 1] = Math.round((68 + 139 * cloudLight) * shade);
-      pixels[offset + 2] = Math.round((114 + 135 * cloudLight) * shade);
-      // A one-pixel feather prevents a harsh jagged circular edge.
-      pixels[offset + 3] = Math.round(255 * Math.min(1, (1 - Math.sqrt(r2)) * size * 0.51));
+      const light = 0.23 + Math.pow(density, 1.25) * 0.77;
+      const i = (y * width + x) * 4;
+      pixels[i] = Math.round(30 + 108 * light);
+      pixels[i + 1] = Math.round(68 + 139 * light);
+      pixels[i + 2] = Math.round(114 + 135 * light);
+      pixels[i + 3] = 255;
     }
   }
-  g.putImageData(image, 0, 0);
-  orbitPlanetTexture = sheet;
-  return sheet;
+  orbitPlanetSurfaceMap = pixels;
+}
+
+function orbitBuildPlanetTexture() {
+  if (!orbitPlanetTexture) {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = orbitPlanetTextureSize;
+    const g = canvas.getContext("2d");
+    if (!g) return null;
+    orbitBuildPlanetMap();
+    const image = g.createImageData(orbitPlanetTextureSize, orbitPlanetTextureSize);
+    const width = orbitPlanetTextureSize;
+    const offsets = [], lons = [], rows = [], shades = [], alphas = [];
+    for (let y = 0; y < width; y++) {
+      const ny = (y + 0.5 - width / 2) / (width / 2);
+      for (let x = 0; x < width; x++) {
+        const nx = (x + 0.5 - width / 2) / (width / 2);
+        const r2 = nx * nx + ny * ny;
+        if (r2 >= 1) continue;
+        const z = Math.sqrt(1 - r2);
+        const lon = Math.atan2(nx, z);
+        const lat = Math.asin(ny);
+        const illumination = 0.30 + 0.70 * Math.pow(
+          Math.max(0, nx * -0.38 + ny * -0.29 + z * 0.88), 0.86
+        );
+        const limb = 0.72 + 0.28 * Math.min(1, z / 0.55);
+        offsets.push((y * width + x) * 4);
+        lons.push(((lon / TAU + 1) % 1) * orbitPlanetMapWidth);
+        rows.push(Math.max(0, Math.min(orbitPlanetMapHeight - 1,
+          Math.floor((lat / Math.PI + 0.5) * orbitPlanetMapHeight))));
+        shades.push(illumination * limb);
+        alphas.push(Math.round(255 * Math.min(1, (1 - Math.sqrt(r2)) * width * 0.51)));
+      }
+    }
+    orbitPlanetSamples = {
+      offsets: new Uint32Array(offsets),
+      lons: new Float32Array(lons),
+      rows: new Uint16Array(rows),
+      shades: new Float32Array(shades),
+      alphas: new Uint8Array(alphas)
+    };
+    orbitPlanetTexture = canvas;
+    orbitPlanetSurfaceCtx = g;
+    orbitPlanetImage = image;
+  }
+
+  // The update clock belongs to weather.js, so pausing freezes the surface.
+  // Repaint only when the longitude changes one cached-map pixel.
+  const angle = window.orbitPlanetRotationAngle?.() || 0;
+  const phase = ((Math.floor(angle * orbitPlanetMapWidth / TAU) %
+    orbitPlanetMapWidth) + orbitPlanetMapWidth) % orbitPlanetMapWidth;
+  if (phase === orbitPlanetLastPhase) return orbitPlanetTexture;
+
+  const { offsets, lons, rows, shades, alphas } = orbitPlanetSamples;
+  const target = orbitPlanetImage.data, source = orbitPlanetSurfaceMap;
+  const mapWidth = orbitPlanetMapWidth;
+  for (let i = 0; i < offsets.length; i++) {
+    const longitude = (Math.floor(lons[i] + phase)) % mapWidth;
+    const src = (rows[i] * mapWidth + longitude) * 4;
+    const dst = offsets[i];
+    const shade = shades[i];
+    target[dst] = Math.round(source[src] * shade);
+    target[dst + 1] = Math.round(source[src + 1] * shade);
+    target[dst + 2] = Math.round(source[src + 2] * shade);
+    target[dst + 3] = alphas[i];
+  }
+  orbitPlanetSurfaceCtx.putImageData(orbitPlanetImage, 0, 0);
+  orbitPlanetLastPhase = phase;
+  return orbitPlanetTexture;
 }
 
 // Render the same tilted ring as multiple fine, translucent dust lanes.

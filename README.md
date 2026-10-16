@@ -160,3 +160,18 @@ and cross safely. Power-ups are optional and can expire if ignored.
 - The warning precedes the launch, and the relatively narrow ice fan leaves
   maneuvering space. Easy mode emits two fragments per wave instead of three.
 - Neither Nova's movement rules nor the late-game SPACE WARP ending change.
+
+## Visible gas giant rotation — build 2026.10.15.9
+
+- Fix the previous update's oversight: the main cloud texture was baked into a
+  stationary globe, so the faint rotating weather overlays did not register.
+- Generate a one-time longitude/latitude albedo map with seamless noise and
+  a recognizable storm feature; reproject it onto the shaded hemisphere as
+  longitude advances. Both limb curvature and the directional lighting remain
+  stationary while the actual clouds move across the disk.
+- Synchronize the cached translucent cloud banks with the same ~48-second
+  rotational clock; motion also continues on the waiting/game-over screens.
+  An explicit pause freezes the clock and gameplay as before.
+- CPU updates are limited to a change of one source-map column (~8 updates
+  per second); the noise map and sphere sampling geometry are cached.
+- Preserve the existing dust rings, hazards, shields, Ringfall, and SPACE WARP.
