@@ -1064,6 +1064,12 @@ draw = function drawWithOrbitStageEvents() {
 };
 
 function orbitLayerForRun(run) {
+  if (run === 2) {
+    return {
+      title: "ORBITAL SURGE",
+      line: "Enter the moving gold arc for bonus speed.",
+    };
+  }
   if (run === 12) {
     return {
       title: "RINGFALL",
@@ -1164,7 +1170,8 @@ function showOrbitTrainingScreen() {
   setOrbitScreen("TRAINING ORBIT", [
     "Tap the blue center planet to move outward.",
     "Tap anywhere else to move inward.",
-    "Dodge pink debris and collect stars.",
+    "Dodge debris. Run 1: collect three timed gold STAR CHASE marks.",
+    "Run 2: enter the moving gold SURGE arc for a speed boost.",
     "Extra life: 3 stars Easy · 5 Normal · 6 Hard.",
     "Jump outward past the outer ring to clear a run.",
     "Press 1 / 2 / 3 for Easy / Normal / Hard hazards.",
