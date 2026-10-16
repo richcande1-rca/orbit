@@ -112,3 +112,20 @@ and cross safely. Power-ups are optional and can expire if ignored.
 - Cache cloud banks and cyclone artwork in two small canvases on first use:
   only two transformed `drawImage` calls per weather frame, not dozens of
   live gradients. Preserve auroras, existing storm damage, controls and physics.
+
+## Planetary realism pass (build 2026.10.15.6)
+
+- Replace the overly bright radial-gradient center planet with a cached
+  spherical blue cloud texture. Curved coordinates, layered procedural
+  turbulence, a directional light source, a shaded terminator and subtle
+  limb falloff give the globe depth rather than an airbrushed glow.
+- Replace the small, literal spiral icon with a diffuse oval cyclone:
+  irregular cloud wisps rotate slowly around a muted calm eye.
+- Replace the crystalline-looking polar ribbons with very faint,
+  broad green-blue auroral haze confined to the globe's surface.
+- Draw weather and polar haze **before** the near half of the ring,
+  restoring the correct foreground/background depth.
+- Render the 256-square globe sprite just once and retain the two cached
+  weather sprites. No new texture generation occurs on subsequent frames.
+- Keep the Run 5 electrical warning/damage, responsive movement, collision
+  geometry, near-miss scoring, and finale behavior unchanged.
