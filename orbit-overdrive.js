@@ -1,9 +1,8 @@
-// NOVA OVERDRIVE: earned arcade surge. No new inputs or altered collision rules.
-// Sits last in the existing gameplay hook chain so boosts respect Orbital Surge.
+// NOVA OVERDRIVE: earned arcade power-up, not a movement-speed modifier.
+// Sits last in the gameplay hook chain and preserves Orbital Surge's timing.
 (() => {
   const FULL = 100;
   const DURATION = 5;
-  const PLAYER_SPEED_FACTOR = 1.16;
   const SHOCKWAVE_BONUS = 25;
   const MAX_SHOCKWAVE_HITS = 4;
   const CHARGE = Object.freeze({
@@ -171,15 +170,10 @@
 
     const wasRunning = state === "running";
     const lifeBefore = lives;
-    // Temporarily modify only the current physics step's angular velocity.
-    // If Run 2's Surge resets its own speed mid-step, honor that reset.
-    const baseSpeed = player.speed;
-    const boosted = wasRunning && activeSeconds > 0;
-    if (boosted) player.speed = baseSpeed * PLAYER_SPEED_FACTOR;
+    // Run the normal physics stack unmodified. OVERDRIVE rewards skill
+    // without making ring-to-ring jumps harder to time.
+    // Run 2's independently earned Orbital Surge remains untouched.
     originalUpdate(dt);
-    if (boosted && player.speed === baseSpeed * PLAYER_SPEED_FACTOR) {
-      player.speed = baseSpeed;
-    }
 
     // Comet damage is applied directly, outside the regular crash() hook.
     if (lives < lifeBefore && activeSeconds > 0) {
