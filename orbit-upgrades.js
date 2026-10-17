@@ -66,9 +66,21 @@
     return (MODE_SPEED[mode()] || 1) * mercy * pressure() * anomalyScale * (stasisSeconds > 0 ? 0.64 : 1);
   }
 
+  // Mobile rings sit much closer together than desktop rings. Scale debris
+  // from actual ring spacing, not pixel ratio or a fixed phone breakpoint.
+  // 375px portrait / five rings -> about 0.64x; desktop -> exactly 1x.
+  // Keep the original hazard radius cached so resizing never compounds.
+  function viewportHazardScale() {
+    if (rings.length < 2) return 1;
+    const spacing = Math.abs(rings[1] - rings[0]);
+    if (!Number.isFinite(spacing) || spacing <= 0) return 1;
+    return Math.max(0.55, Math.min(1, spacing / 32));
+  }
+
   function applyHazardBalance() {
     const speedScale = scale();
-    const sizeScale = MODE_SIZE[mode()] || 1;
+    const viewportScale = viewportHazardScale();
+    const sizeScale = (MODE_SIZE[mode()] || 1) * viewportScale;
     for (const hazard of hazards) {
       // Keep the natural orbit pattern intact; scale from the original values
       // so repeated adjustments never compound or reverse its direction.
@@ -76,6 +88,9 @@
       if (hazard.orbitBaseSize === undefined) hazard.orbitBaseSize = hazard.size;
       hazard.speed = hazard.orbitBaseSpeed * speedScale;
       hazard.size = hazard.orbitBaseSize * sizeScale;
+      // The glow/wobble is decorative; scale its amplitude with the
+      // physical hit radius so the visual silhouette stays proportional.
+      hazard.orbitViewportSizeScale = viewportScale;
     }
   }
 
@@ -226,6 +241,10 @@
   };
   // Run 8's safe corridor creates its hazard after its original spawn pass.
   window.orbitApplyHazardBalance = applyHazardBalance;
+
+  // The game's original resize listener runs first and rebuilds rings.
+  // Reapply from each hazard's cached original size after rotation/resizing.
+  window.addEventListener("resize", () => applyHazardBalance());
 
   const originalStartGame = startGame;
   startGame = function startGameWithUpgrades() {
