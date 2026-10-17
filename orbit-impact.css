@@ -1,5 +1,5 @@
-/* Arcade impact cue: a 58ms electrical pop and a fading 112ms afterglow.
-   Above the game's HUD and GAME OVER card, with no intercepted input. */
+/* Impact: 58ms white snap, visible magenta pulse, then the color recedes
+   toward the rim by ~250ms. Above HUD/game-over; never intercepts input. */
 .orbit-impact-screen,
 .orbit-impact-screen > span {
   position: fixed;
@@ -17,28 +17,45 @@
   opacity: 0;
 }
 
-.orbit-impact-core {
-  background: #faffff;
-}
+.orbit-impact-core { background: #faffff; }
+.orbit-impact-after { background: #ec328e; }
 
-.orbit-impact-after {
-  background: #e53b8e;
+/* Center clears before the outer glow. The two colored overlays overlap
+   so this reads as one impact pulse, not multiple flashes. */
+.orbit-impact-rim {
+  background: radial-gradient(
+    ellipse farthest-corner at center,
+    transparent 26%,
+    rgba(255, 55, 143, 0.04) 43%,
+    rgba(255, 47, 137, 0.30) 70%,
+    rgba(241, 20, 110, 0.74) 100%
+  );
 }
 
 .orbit-impact-screen.impact-comet .orbit-impact-core {
   background: #e1f6ff;
 }
-
 .orbit-impact-screen.impact-comet .orbit-impact-after {
-  background: #509bff;
+  background: #4e9cfc;
+}
+.orbit-impact-screen.impact-comet .orbit-impact-rim {
+  background: radial-gradient(
+    ellipse farthest-corner at center,
+    transparent 26%,
+    rgba(105, 205, 255, 0.04) 43%,
+    rgba(71, 154, 253, 0.30) 70%,
+    rgba(48, 110, 245, 0.72) 100%
+  );
 }
 
 .orbit-impact-screen.impact-active .orbit-impact-core {
   animation: orbit-impact-white 58ms linear both;
 }
-
 .orbit-impact-screen.impact-active .orbit-impact-after {
-  animation: orbit-impact-after 112ms ease-out 44ms both;
+  animation: orbit-impact-pulse 155ms ease-out 47ms both;
+}
+.orbit-impact-screen.impact-active .orbit-impact-rim {
+  animation: orbit-impact-rim-fade 170ms ease-out 78ms both;
 }
 
 @keyframes orbit-impact-white {
@@ -46,23 +63,30 @@
   50% { opacity: 0.72; }
   100% { opacity: 0; }
 }
-
-@keyframes orbit-impact-after {
-  0% { opacity: 0.34; }
+@keyframes orbit-impact-pulse {
+  0% { opacity: 0; }
+  15% { opacity: 0.57; }
+  38% { opacity: 0.51; }
+  68% { opacity: 0.22; }
+  100% { opacity: 0; }
+}
+@keyframes orbit-impact-rim-fade {
+  0% { opacity: 0; }
+  23% { opacity: 0.86; }
+  48% { opacity: 0.64; }
   100% { opacity: 0; }
 }
 
-/* A single gentler blink for users who prefer reduced motion. */
+/* Reduced-motion: single gentle blink, no colored afterglow. */
 @media (prefers-reduced-motion: reduce) {
   .orbit-impact-screen.impact-active .orbit-impact-core {
     animation: orbit-impact-gentle 85ms ease-out both;
   }
-
-  .orbit-impact-screen.impact-active .orbit-impact-after {
+  .orbit-impact-screen.impact-active .orbit-impact-after,
+  .orbit-impact-screen.impact-active .orbit-impact-rim {
     animation: none;
     opacity: 0;
   }
-
   @keyframes orbit-impact-gentle {
     0% { opacity: 0.20; }
     100% { opacity: 0; }
