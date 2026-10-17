@@ -7,7 +7,8 @@
   impact.setAttribute("aria-hidden", "true");
   impact.innerHTML =
     '<span class="orbit-impact-core"></span>' +
-    '<span class="orbit-impact-after"></span>';
+    '<span class="orbit-impact-after"></span>' +
+    '<span class="orbit-impact-rim"></span>';
   document.body.appendChild(impact);
 
   let lastImpactAt = -Infinity;
@@ -21,7 +22,7 @@
 
     impact.classList.remove("impact-active");
     impact.classList.toggle("impact-comet", kind === "comet");
-    // Restart the two short CSS animations on each *real* hit.
+    // Restart the short CSS impact sequence on each *real* hit.
     // No timers, redraw loops, or blocking input overlays.
     void impact.offsetWidth;
     impact.classList.add("impact-active");
