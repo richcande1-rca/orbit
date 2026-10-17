@@ -1,0 +1,56 @@
+/* Earned Overdrive gauge stays clear of mobile movement buttons. */
+.orbit-overdrive {
+  position: fixed;
+  z-index: 9;
+  top: max(72px, calc(env(safe-area-inset-top) + 56px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(154px, 28vw, 220px);
+  padding: 7px 10px 8px;
+  background: rgba(4, 13, 34, 0.82);
+  border: 1px solid rgba(100, 237, 255, 0.45);
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(25, 200, 255, 0.15) inset;
+  color: #b5faff;
+  font: 800 10px/1.2 system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  visibility: hidden;
+}
+.orbit-overdrive.orbit-overdrive-visible { visibility: visible; }
+body.title-screen-active .orbit-overdrive { visibility: hidden; }
+.orbit-overdrive-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  align-items: center;
+}
+.orbit-overdrive-readout { color: white; white-space: nowrap; }
+.orbit-overdrive-track {
+  height: 5px;
+  margin-top: 6px;
+  background: rgba(112, 231, 255, 0.16);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.orbit-overdrive-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #21a5e5, #75fcff, #fff3ab);
+  box-shadow: 0 0 9px rgba(110, 255, 250, 0.85);
+}
+.orbit-overdrive-active {
+  border-color: rgba(255, 244, 150, 0.84);
+  color: #fff3b0;
+  box-shadow: 0 0 22px rgba(36, 245, 255, 0.4), 0 0 22px rgba(88, 201, 255, 0.22) inset;
+}
+@media (max-width: 720px) {
+  .orbit-overdrive {
+    top: max(76px, calc(env(safe-area-inset-top) + 64px));
+    width: 164px;
+    font-size: 9px;
+    padding: 6px 8px;
+  }
+}

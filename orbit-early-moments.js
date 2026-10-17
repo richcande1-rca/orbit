@@ -69,6 +69,7 @@
     const step = starIndex;
     const points = STAR_POINTS[step];
     score += points;
+    window.orbitOverdriveCharge?.("chaseStar");
     starIndex += 1;
     starSeconds = 0;
     flash = Math.max(flash, 0.24);
@@ -107,6 +108,7 @@
     boostSeconds = SURGE_BOOST_SECONDS;
     player.speed = normalSpeed * SURGE_MULTIPLIER;
     score += SURGE_POINTS;
+    window.orbitOverdriveCharge?.("orbitalSurge");
     flash = Math.max(flash, 0.32);
     popup = "ORBITAL SURGE  +" + SURGE_POINTS;
     popupTime = 1.7;

@@ -38,7 +38,7 @@ This is intentionally simple: circular Frogger with a gorgeous starry background
 - The player jump timing is equally responsive on Easy, Normal, and Hard.
 - Each difficulty scales the orbital hazards, while collisions temporarily
   reduce the pressure; clearing runs restores the chosen baseline.
-- Comet impacts cost 1 life on Easy, 2 on Normal, and 3 on Hard.
+- Comet impacts cost 1 life on Easy, 1 on Normal, and 3 on Hard.
 - Starting on Run 2, a collectible power-up can appear **during** each run:
   - **Shield:** absorbs one debris or comet impact.
   - **Slow field:** slows orbital debris for 6 seconds.
@@ -283,3 +283,28 @@ and cross safely. Power-ups are optional and can expire if ignored.
   multipliers by retaining each hazard's original size.
 - Speed, debris counts, comet damage, power-ups, Normal/Hard difficulty,
   special modes, endless cycles, and online leaderboard are unchanged.
+
+## NOVA OVERDRIVE — build 2026.10.16.6
+
+**Skill-based automatic arcade power-up.** A small HUD gauge fills once per
+legitimate event: +30 near miss, +16 ordinary bonus star, +16 Star Chase
+target, +22 Orbital Surge sector, +12 cleared run. Repeated button inputs
+or standing still do not create energy. The 100-point gauge automatically
+starts a 5-second OVERDRIVE surge during live play; if the meter fills on
+a reward or SPACE WARP screen, the activation waits until running resumes.
+
+- On activation, a cyan shockwave removes at most four nearby existing
+  debris hazards and grants +25 points (+5 for each cleared obstacle).
+- While active, Nova's **orbital angular speed is 16% faster**, and earned
+  **near-miss points are doubled**. Lane-change input and every original
+  collision rule remain unchanged. A genuine hit cancels the surge.
+- Electric ribbons, pulsing ring lights, an expanding shockwave, and a
+  seconds-remaining badge celebrate the activation. Effects are simple
+  canvas strokes so the mobile LITE path stays efficient.
+- The sound uses the existing reward cue, honoring mute settings.
+  Energy and boosts freeze during pauses and reward screens; a new game
+  fully resets them, while remaining charge carries over across levels
+  and SPACE WARP cycles. Ordinary hits halve stored charge.
+- Run 1/2 timed skill events, shield/stasis pickups, all difficulty modes,
+  comet damage, multi-cycle progression, and cloud STARBOARD are preserved.
+- No manual activation button or extra control required.
