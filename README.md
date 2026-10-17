@@ -320,3 +320,20 @@ a reward or SPACE WARP screen, the activation waits until running resumes.
   audiovisual effects, and crash cancellation exactly as before.
 - No changes to base player movement, lane-change cooldowns, normal/Hard
   debris difficulty, comet strikes, or the separate 25% Run 2 Orbital Surge.
+
+## Arcade impact flash — build 2026.10.17.2
+
+- Real damage from debris, electrical storms, ringfall ice, or comets
+  produces a very brief full-screen electrical flash.
+- First stage: nearly white for 58ms. Second: a pink/magenta afterglow
+  fades away over 112ms, starting 44ms after impact. Comets use a
+  cooler blue-white hit with a blue afterglow.
+- Effects sit above the regular canvas and game-over overlays but use
+  pointer-events: none; they do not pause or change physics, movement,
+  collision sizes, scoring, lives, or the existing screen shake.
+- Shields and invincible test-mode contacts do not trigger the bright
+  impact effect. Rapid double triggers are suppressed within 250ms.
+  Reduced-motion settings receive one softer, 85ms blink without
+  the second colored afterglow.
+- No rapid multi-strobe or timer-driven overlay. CSS animations handle
+  the brief effect, with no additional canvas per-frame rendering.
