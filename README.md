@@ -295,9 +295,10 @@ a reward or SPACE WARP screen, the activation waits until running resumes.
 
 - On activation, a cyan shockwave removes at most four nearby existing
   debris hazards and grants +25 points (+5 for each cleared obstacle).
-- While active, Nova's **orbital angular speed is 16% faster**, and earned
-  **near-miss points are doubled**. Lane-change input and every original
-  collision rule remain unchanged. A genuine hit cancels the surge.
+- While active, Nova keeps her **normal orbital movement speed and jump
+  timing**, and earned **near-miss points are doubled**. Lane-change input
+  and every original collision rule remain unchanged. A genuine hit cancels
+  the surge. Run 2's independent Orbital Surge speed boost is unchanged.
 - Electric ribbons, pulsing ring lights, an expanding shockwave, and a
   seconds-remaining badge celebrate the activation. Effects are simple
   canvas strokes so the mobile LITE path stays efficient.
@@ -308,3 +309,14 @@ a reward or SPACE WARP screen, the activation waits until running resumes.
 - Run 1/2 timed skill events, shield/stasis pickups, all difficulty modes,
   comet damage, multi-cycle progression, and cloud STARBOARD are preserved.
 - No manual activation button or extra control required.
+
+## Overdrive control consistency — build 2026.10.17.1
+
+- Remove OVERDRIVE's temporary 16% orbital movement-speed boost.
+  Speed changes made jumping between rings harder to time, especially
+  when they overlapped with Run 2's Orbital Surge.
+- Preserve the five-second duration, charge rules, automatic activation,
+  cyan shockwave, debris clearing, bonus points, double near-miss scoring,
+  audiovisual effects, and crash cancellation exactly as before.
+- No changes to base player movement, lane-change cooldowns, normal/Hard
+  debris difficulty, comet strikes, or the separate 25% Run 2 Orbital Surge.
