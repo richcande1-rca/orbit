@@ -90,13 +90,15 @@
     rewardedHazards.add(hazard); // A given piece of debris pays once per run.
     combo = comboTime > 0 ? Math.min(4, combo + 1) : 1;
     comboTime = COMBO_WINDOW;
-    const points = NEAR_MISS_POINTS * combo;
+    const multiplier = window.orbitOverdriveActive?.() ? 2 : 1;
+    const points = NEAR_MISS_POINTS * combo * multiplier;
     score += points;
     popup = "NEAR MISS ×" + combo + "  +" + points;
     popupTime = 1.05;
     popupAngle = angle;
     popupLane = lane;
     window.orbitAudio?.star?.();
+    window.orbitOverdriveCharge?.("nearMiss");
     updateHud(popup);
   }
 
