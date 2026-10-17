@@ -1,0 +1,70 @@
+/* Arcade impact cue: a 58ms electrical pop and a fading 112ms afterglow.
+   Above the game's HUD and GAME OVER card, with no intercepted input. */
+.orbit-impact-screen,
+.orbit-impact-screen > span {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.orbit-impact-screen {
+  z-index: 70;
+  isolation: isolate;
+}
+
+.orbit-impact-screen > span {
+  display: block;
+  opacity: 0;
+}
+
+.orbit-impact-core {
+  background: #faffff;
+}
+
+.orbit-impact-after {
+  background: #e53b8e;
+}
+
+.orbit-impact-screen.impact-comet .orbit-impact-core {
+  background: #e1f6ff;
+}
+
+.orbit-impact-screen.impact-comet .orbit-impact-after {
+  background: #509bff;
+}
+
+.orbit-impact-screen.impact-active .orbit-impact-core {
+  animation: orbit-impact-white 58ms linear both;
+}
+
+.orbit-impact-screen.impact-active .orbit-impact-after {
+  animation: orbit-impact-after 112ms ease-out 44ms both;
+}
+
+@keyframes orbit-impact-white {
+  0% { opacity: 0.78; }
+  50% { opacity: 0.72; }
+  100% { opacity: 0; }
+}
+
+@keyframes orbit-impact-after {
+  0% { opacity: 0.34; }
+  100% { opacity: 0; }
+}
+
+/* A single gentler blink for users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .orbit-impact-screen.impact-active .orbit-impact-core {
+    animation: orbit-impact-gentle 85ms ease-out both;
+  }
+
+  .orbit-impact-screen.impact-active .orbit-impact-after {
+    animation: none;
+    opacity: 0;
+  }
+
+  @keyframes orbit-impact-gentle {
+    0% { opacity: 0.20; }
+    100% { opacity: 0; }
+  }
+}
