@@ -745,7 +745,8 @@ function drawHazards() {
 
     for (const hazard of hazards) {
       const p = pointOnRing(hazard.lane, hazard.angle);
-      const wobbleSize = hazard.size + Math.sin(hazard.wobble) * 1.6;
+      const wobbleSize = hazard.size +
+        Math.sin(hazard.wobble) * 1.6 * (hazard.orbitViewportSizeScale || 1);
       const scale = wobbleSize / 14;
       const size = 72 * scale;
       ctx.drawImage(sprites.hazard, p.x - size / 2, p.y - size / 2, size, size);
@@ -760,7 +761,8 @@ function drawHazards() {
 
   for (const hazard of hazards) {
     const p = pointOnRing(hazard.lane, hazard.angle);
-    const wobbleSize = hazard.size + Math.sin(hazard.wobble) * 1.6;
+    const wobbleSize = hazard.size +
+        Math.sin(hazard.wobble) * 1.6 * (hazard.orbitViewportSizeScale || 1);
 
     ctx.shadowBlur = 18;
     ctx.shadowColor = "rgba(255, 103, 103, 0.9)";

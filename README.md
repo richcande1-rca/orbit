@@ -268,3 +268,18 @@ and cross safely. Power-ups are optional and can expire if ignored.
   shield/stasis, combo/recovery, STARBOARD, and mobile/desktop controls.
 - Hazards never spawn stacked together: all pairs begin at least 1.95
   radians apart, and standard generation uses at most two per lane.
+
+## Mobile hazard geometry — build 2026.10.16.5
+
+- Hazard *radius* adapts to the actual space between orbit rings, rather
+  than staying desktop-sized on phone screens. On a 375px-wide portrait
+  phone with five rings, hazards are roughly 36% smaller; on a 390px phone
+  roughly 31% smaller. Later six-ring layouts shrink them a little further
+  to fit the tighter geometry. Desktop-sized ring layouts remain unchanged.
+- Use the same scaled `hazard.size` for both the LITE/mobile hazard sprite
+  core and the collision radius, including other mechanics such as comets
+  clearing debris. The visual glow/wobble scales proportionally too.
+- Recalculate sizes after viewport resize / phone rotation without compounding
+  multipliers by retaining each hazard's original size.
+- Speed, debris counts, comet damage, power-ups, Normal/Hard difficulty,
+  special modes, endless cycles, and online leaderboard are unchanged.
