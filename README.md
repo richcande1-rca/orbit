@@ -337,3 +337,16 @@ a reward or SPACE WARP screen, the activation waits until running resumes.
   the second colored afterglow.
 - No rapid multi-strobe or timer-driven overlay. CSS animations handle
   the brief effect, with no additional canvas per-frame rendering.
+
+## Impact pulse follow-up — build 2026.10.17.3
+
+- Playtesting showed the previous impact looked like only a momentary white
+  blink. Keep the first 58ms white flash but follow it with a clearly visible
+  magenta full-screen pulse (155ms, starting 47ms in). An overlapping
+  radial edge glow continues to 248ms, so the color retreats toward
+  the edges as the center clears. Comets use the equivalent cool-blue palette.
+- This is one impact sequence, not repeated strobes. Keep the existing
+  250ms anti-strobe retrigger guard, original screen shake, shield/test-mode
+  exclusions, mobile performance, scoring, physics and game-over behavior.
+- Reduced-motion preference displays only one gentler 85ms white blink.
+  The full-screen overlay remains pointer-events: none.
