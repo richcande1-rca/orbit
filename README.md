@@ -350,3 +350,18 @@ a reward or SPACE WARP screen, the activation waits until running resumes.
   exclusions, mobile performance, scoring, physics and game-over behavior.
 - Reduced-motion preference displays only one gentler 85ms white blink.
   The full-screen overlay remains pointer-events: none.
+
+## Nova gets her silhouette — build 2026.10.17.4
+
+- Replace the original circular white/blue gameplay marker with a tiny
+  pointed silver spacecraft, swept-back blue wings, blue engine tail,
+  and a bright cyan canopy.
+- The nose points in the actual direction of travel (tangent to the
+  orbital path); a short cyan contrail follows the orbit behind her.
+- Mobile/LITE mode rotates a tiny cached canvas sprite rather than
+  reconstructing geometry every frame. The detailed renderer uses
+  the same silhouette, avoiding differences between desktop and phone.
+- Keep the original player collision radius, orbit center, movement
+  speed, ring jumps, invulnerability blinking, impacts, scoring,
+  power-ups, and game progression exactly as they were.
+- No new controls, abilities, hitboxes, art downloads or physics changes.
