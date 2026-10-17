@@ -342,25 +342,38 @@ function createOrbitHazard(lane, speedScale, reverseFlow = false) {
   };
 }
 
+// An explicit first-cycle progression: gentle Run 1, then a visible step up
+// every run. Keep the original Easy generation and movement physics intact.
+function orbitRunTrafficSpeedScale() {
+  const original = 1 + (level - 1) * 0.13;
+  if (level === 1 || window.orbitGetDifficulty?.() === "easy") return original;
+  const incremental = 1 + Math.min(0.23, 0.08 + (level - 2) * 0.015);
+  return original * incremental;
+}
+
 makeHazards = function makeHazardsWithRunIdentity() {
-  const speedScale = 1 + (level - 1) * 0.13;
+  const speedScale = orbitRunTrafficSpeedScale();
   const reverseFlow = level === orbitCounterflowRun;
-  // Readable traffic patterns make each ring change a real timing choice.
-  // Easy keeps its previous counts; Normal/Hard get deliberate pairs.
-  const earlyPressure = (window.orbitGetDifficulty?.() || "normal") !== "easy";
+  const pacedDifficulty = (window.orbitGetDifficulty?.() || "normal") !== "easy";
   const pairedLanes = new Set();
-  if (earlyPressure) {
-    if (level === 3) pairedLanes.add(Math.random() < 0.5 ? 2 : 3);
-    else if (level === 4) {
+  if (pacedDifficulty) {
+    if (level === 2) {
+      // One contested lane immediately distinguishes Run 2 from Run 1.
+      pairedLanes.add(Math.random() < 0.5 ? 2 : 3);
+    } else if (level === 3) {
       pairedLanes.add(2);
       pairedLanes.add(Math.random() < 0.5 ? 3 : 4);
+    } else if (level === 4) {
+      pairedLanes.add(2);
+      pairedLanes.add(3);
+      pairedLanes.add(Math.random() < 0.5 ? 1 : 4);
     } else if (level === 5) {
       pairedLanes.add(2);
       pairedLanes.add(3);
-    } else if (level >= 7 && level <= 9) {
-      pairedLanes.add(2);
-      pairedLanes.add(3);
-      pairedLanes.add(4);
+      pairedLanes.add(Math.random() < 0.5 ? 1 : 4);
+    } else if (level >= 7) {
+      // On Run 8 the existing safe corridor remains entirely clear.
+      for (let lane = 1; lane < ringCount; lane++) pairedLanes.add(lane);
     }
   }
   hazards = [];
@@ -387,16 +400,21 @@ makeHazards = function makeHazardsWithRunIdentity() {
     }
 
     const paired = pairedLanes.has(lane);
-    const count = paired ? 2 : 1 + (level > 3 && Math.random() < 0.52 ? 1 : 0);
+    const count = pacedDifficulty
+      ? (paired ? 2 : 1)
+      : 1 + (level > 3 && Math.random() < 0.52 ? 1 : 0);
     const lead = createOrbitHazard(lane, speedScale, reverseFlow);
     hazards.push(lead);
     if (count > 1) {
-      // One reverse-moving pair in later runs; preserve Run 5's wholly
-      // reversed lanes and Run 6's unique full-field crosscurrent.
-      const contested = paired && level >= 7 &&
-        (lane === 3 || (level === 8 && lane === 2 && orbitSafeLane === 3));
+      // Run 4 first introduces a single opposing pair. Run 5 keeps its
+      // distinct all-reversed identity, Run 6 keeps its full crosscurrent,
+      // and later runs add multiple opposed timing decisions.
+      const contested = pacedDifficulty && paired &&
+        ((level === 4 && lane === 2) ||
+         (level >= 7 && (lane === 2 || lane === 4 ||
+           (level >= 11 && lane === 5))));
       const follower = createOrbitHazard(lane, speedScale, contested ? !reverseFlow : reverseFlow);
-      // Initial spacing guarantees no newly generated instant double hits.
+      // Two hazards may approach later, but never spawn in a stacked pile.
       follower.angle = (lead.angle + rand(1.95, TAU - 1.95)) % TAU;
       hazards.push(follower);
     }
@@ -411,7 +429,7 @@ function closeOrbitSafeCorridorIfReady() {
   orbitSafeLane = -1;
   orbitSafeLaneUntil = 0;
 
-  const speedScale = 1 + (level - 1) * 0.13;
+  const speedScale = orbitRunTrafficSpeedScale();
   hazards.push(createOrbitHazard(lane, speedScale));
   window.orbitApplyHazardBalance?.();
   updateHud("SAFE CORRIDOR CLOSED.");
