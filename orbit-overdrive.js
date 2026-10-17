@@ -19,7 +19,6 @@
   let waveSeconds = 0;
   let animation = 0;
   let clearedHazards = 0;
-  let currentCycle = window.orbitGetCycle?.() || 1;
 
   const meter = document.createElement("div");
   meter.id = "orbit-overdrive";
@@ -32,18 +31,35 @@
   const fill = meter.querySelector(".orbit-overdrive-fill");
   const readout = meter.querySelector(".orbit-overdrive-readout");
   document.body.appendChild(meter);
+  // Avoid repeatedly writing DOM styles on every 1/60s physics substep.
+  // Mobile LITE can run several update steps per animation frame.
+  let lastVisible = null;
+  let lastActive = null;
+  let lastText = "";
+  let lastFill = "";
 
   function syncMeter() {
     const show = state !== "waiting" && state !== "gameover" &&
       !document.body.classList.contains("title-screen-active");
-    meter.classList.toggle("orbit-overdrive-visible", show);
-    meter.classList.toggle("orbit-overdrive-active", activeSeconds > 0);
-    if (activeSeconds > 0) {
-      readout.textContent = Math.max(0, activeSeconds).toFixed(1) + "s · ×2";
-      fill.style.width = "100%";
-    } else {
-      readout.textContent = Math.round(energy) + "%";
-      fill.style.width = energy + "%";
+    const active = activeSeconds > 0;
+    const text = active ? Math.max(0, activeSeconds).toFixed(1) + "s · ×2"
+      : Math.round(energy) + "%";
+    const width = active ? "100%" : energy + "%";
+    if (show !== lastVisible) {
+      meter.classList.toggle("orbit-overdrive-visible", show);
+      lastVisible = show;
+    }
+    if (active !== lastActive) {
+      meter.classList.toggle("orbit-overdrive-active", active);
+      lastActive = active;
+    }
+    if (text !== lastText) {
+      readout.textContent = text;
+      lastText = text;
+    }
+    if (width !== lastFill) {
+      fill.style.width = width;
+      lastFill = width;
     }
   }
 
@@ -103,7 +119,6 @@
     animation = 0;
     clearedHazards = 0;
     originalStart();
-    currentCycle = window.orbitGetCycle?.() || 1;
     syncMeter();
   };
 
@@ -182,9 +197,6 @@
         activeSeconds = Math.max(0, activeSeconds - dt);
       }
       if (waveSeconds > 0) waveSeconds = Math.max(0, waveSeconds - dt);
-      // SPACE WARP resets the numbered run but intentionally preserves
-      // charged energy; a new game above is the only complete reset.
-      currentCycle = window.orbitGetCycle?.() || currentCycle;
     }
     syncMeter();
   };
