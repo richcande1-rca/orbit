@@ -149,7 +149,7 @@
       const laneIndex = Math.floor(Math.random() * freeLanes.length);
       const lane = freeLanes.splice(laneIndex, 1)[0];
       const original = hazards.find(h => h.lane === lane);
-      const counter = createOrbitHazard(lane, 1 + (level - 1) * 0.13, true);
+      const counter = createOrbitHazard(lane, orbitRunTrafficSpeedScale(), true);
       // Do not sandwich a new counter-hazard on top of existing debris.
       counter.angle = (original.angle + rand(1.45, TAU - 1.45)) % TAU;
       hazards.push(counter);
