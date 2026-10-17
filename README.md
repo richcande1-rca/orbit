@@ -246,3 +246,25 @@ and cross safely. Power-ups are optional and can expire if ignored.
 - All base pairs start with an angular separation of at least 1.95 radians,
   with at most two hazards per ring; all other cycles, events, and rewards
   continue using the original gameplay rules.
+
+## Run-by-run difficulty ramp — build 2026.10.16.4
+
+- Normal comet damage is **one life** (previously two); Easy remains one,
+  Hard remains three. A comet still knocks Nova two rings inward, has the
+  same warning/cooldown/trajectory and still respects shields and test mode.
+- **Run 1 is unchanged.** Run 2 now gets a second hazard in one middle
+  orbit and 8% additional debris speed on Normal/Hard, so there is an
+  immediate, tangible difference from Run 1.
+- Run 3 has pairs in two lanes, Run 4 pairs in three lanes with one moving
+  against the others, Run 5 pairs three lanes while maintaining its full
+  traffic reversal, and Run 6 retains its uniquely all-ring crosscurrent.
+- Runs 7–9 apply two-hazard traffic across every available lane with two
+  opposed pairs (Run 8's special safe corridor remains entirely clear
+  until it closes). Runs 10–12 maintain those tense pairings, with
+  higher levels gaining one additional lane as the orbit expands.
+- The added Normal/Hard speed ramp grows gradually from 8% at Run 2 to
+  23% at Run 12 and **does not change Easy**. It respects the established
+  hazard physics, special-event flow, existing per-cycle escalation,
+  shield/stasis, combo/recovery, STARBOARD, and mobile/desktop controls.
+- Hazards never spawn stacked together: all pairs begin at least 1.95
+  radians apart, and standard generation uses at most two per lane.

@@ -7,7 +7,7 @@
   // Difficulty changes comet consequences, not Nova's responsiveness.
   function cometStrikeDamage() {
     const difficulty = window.orbitGetDifficulty?.() || "normal";
-    return difficulty === "easy" ? 1 : difficulty === "hard" ? 3 : 2;
+    return difficulty === "hard" ? 3 : 1;
   }
   const cometKnockbackRings = 2;
   const cometTwinRun = 10;
@@ -390,7 +390,8 @@
     player.lane = Math.max(0, player.lane - cometKnockbackRings);
     moveCooldown = 0.28;
     invulnerable = 1.4;
-    updateHud(previousLane > player.lane ? `Comet impact. -${damage} lives. Knocked inward hard.` : `Comet impact. -${damage} lives. Hold the inner orbit.`);
+    const loss = damage === 1 ? "1 life" : `${damage} lives`;
+    updateHud(previousLane > player.lane ? `Comet impact. -${loss}. Knocked inward hard.` : `Comet impact. -${loss}. Hold the inner orbit.`);
     updateControlButtons();
   }
 
