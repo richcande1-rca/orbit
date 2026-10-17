@@ -3,7 +3,7 @@
   titleScreen.className = "title-screen";
   titleScreen.setAttribute("aria-label", "Opening title screen");
 
-  const orbitBuildStamp = "Orbit build 2026.10.16.5";
+  const orbitBuildStamp = "Orbit build 2026.10.16.6";
 
   const skipButton = document.createElement("button");
   skipButton.className = "title-skip";
@@ -65,6 +65,7 @@
         "Avoid pink moons. Reach the outer orbit.",
         "Stars add points and lives. Comets hurt.",
         "Earn near-miss bonuses by narrowly dodging debris.",
+        "Charge NOVA OVERDRIVE with close calls, stars and cleared runs!",
         "Look for GRAVITY PULSE warnings on later runs.",
         "The planet creates a warned ion storm on Run 5.",
       ],
