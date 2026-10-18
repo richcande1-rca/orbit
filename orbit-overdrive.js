@@ -29,7 +29,9 @@
     '<div class="orbit-overdrive-track"><span class="orbit-overdrive-fill"></span></div>';
   const fill = meter.querySelector(".orbit-overdrive-fill");
   const readout = meter.querySelector(".orbit-overdrive-readout");
-  document.body.appendChild(meter);
+  // Anchor the readout to the volume slider, keeping the existing
+  // controls and the gauge's gameplay behavior completely unchanged.
+  document.querySelector(".orbit-volume-anchor").appendChild(meter);
   // Avoid repeatedly writing DOM styles on every 1/60s physics substep.
   // Mobile LITE can run several update steps per animation frame.
   let lastVisible = null;
