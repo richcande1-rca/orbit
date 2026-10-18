@@ -255,7 +255,22 @@
   // focused help controls still works and game movement stays suppressed.
   window.addEventListener("keydown", (event) => {
     if (!open) return;
-    if (event.code === "Tab") return;
+    if (event.code === "Tab") {
+      // Keep keyboard focus in the modal, including while the underlying
+      // title screen or paused game remains mounted.
+      const focusable = [closeButton, scroller,
+        ...(backButton.disabled ? [] : [backButton]),
+        ...(nextButton.disabled ? [] : [nextButton])];
+      const index = focusable.indexOf(document.activeElement);
+      const goingBack = !!event.shiftKey;
+      if ((goingBack && index <= 0) ||
+          (!goingBack && index === focusable.length - 1)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        focusable[goingBack ? focusable.length - 1 : 0].focus();
+      }
+      return;
+    }
     if (event.code === "Escape") {
       event.preventDefault();
       event.stopImmediatePropagation();
