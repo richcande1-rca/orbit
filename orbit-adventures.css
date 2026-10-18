@@ -1,0 +1,37 @@
+/* Compact side-mission objective. No extra controls and no input capture. */
+.orbit-adventure-status {
+  position: fixed;
+  top: max(88px, calc(env(safe-area-inset-top) + 84px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 6px 12px;
+  border: 1px solid rgba(166, 230, 255, 0.32);
+  border-radius: 999px;
+  background: rgba(3, 10, 30, 0.83);
+  color: #ecfaff;
+  box-shadow: 0 0 18px rgba(83, 213, 255, 0.09) inset;
+  font: 800 10px/1.3 system-ui, sans-serif;
+  letter-spacing: 0.035em;
+  text-align: center;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.orbit-adventure-status.orbit-adventure-visible {
+  visibility: visible;
+}
+
+body.title-screen-active .orbit-adventure-status {
+  visibility: hidden;
+}
+
+@media (max-width: 720px) {
+  .orbit-adventure-status {
+    top: max(122px, calc(env(safe-area-inset-top) + 114px));
+    font-size: 9px;
+    max-width: min(320px, calc(100vw - 28px));
+    padding: 5px 9px;
+  }
+}
