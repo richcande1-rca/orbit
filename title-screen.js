@@ -3,7 +3,7 @@
   titleScreen.className = "title-screen";
   titleScreen.setAttribute("aria-label", "Opening title screen");
 
-  const orbitBuildStamp = "Orbit build 2026.10.18.2";
+  const orbitBuildStamp = "Orbit build 2026.10.18.3";
 
   const skipButton = document.createElement("button");
   skipButton.className = "title-skip";
@@ -57,17 +57,12 @@
       mode: "notes",
       kicker: "",
       title: "NOVA ONLINE",
-      tagline: "You are the blue-white spark.",
+      tagline: "Pilot Nova through the orbital rings.",
       lines: [
-        "Watch the pattern.",
-        "Tap the blue center planet to move outward.",
-        "Tap anywhere else to move inward.",
-        "Avoid pink moons. Reach the outer orbit.",
-        "Stars add points and lives. Comets hurt.",
-        "Earn near-miss bonuses by narrowly dodging debris.",
-        "Charge NOVA OVERDRIVE with close calls, stars and cleared runs!",
-        "Look for GRAVITY PULSE warnings on later runs.",
-        "The planet creates a warned ion storm on Run 5.",
+        "SPACE / →: OUTWARD. ←: INWARD. P / ESC: PAUSE.",
+        "Touch: use IN / OUT, or tap the planet to move outward.",
+        "Dodge debris, collect stars and escape the outer ring.",
+        "Try the optional rescue, wormhole, hunter and star missions!",
       ],
       button: "ENTER ORBIT",
       hint: "",
@@ -157,6 +152,12 @@
 
       button.addEventListener("pointerdown", chooseDifficulty, { passive: false });
       button.addEventListener("click", (event) => {
+        // Pointerdown already selected the mode. A keyboard-generated
+        // click needs to be handled here so Enter/Space also work.
+        if (event.detail === 0) {
+          chooseDifficulty(event);
+          return;
+        }
         event.preventDefault();
         event.stopPropagation();
       });
@@ -221,6 +222,17 @@
     }
 
     if (!isAttract) {
+      const helpButton = document.createElement("button");
+      helpButton.className = "title-help-button";
+      helpButton.type = "button";
+      helpButton.textContent = "HOW TO PLAY";
+      helpButton.setAttribute("aria-label", "Open ORBIT instructions");
+      helpButton.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        window.orbitOpenHelp?.(event);
+      }, { passive: false });
+      card.appendChild(helpButton);
       addDifficultySelector();
     }
 
@@ -283,13 +295,28 @@
   }
 
   function handleTitleKey(event) {
-    if (!titleOpen) return;
+    if (!titleOpen || window.orbitHelpIsOpen?.()) return;
+
+    const target = event.target;
+    if (target?.closest?.(".title-help-button")) {
+      if (event.code === "Space" || event.code === "Enter") {
+        event.stopImmediatePropagation();
+        window.orbitOpenHelp?.(event);
+      }
+      return;
+    }
+
+    // Preserve keyboard interaction with the difficulty selector. The
+    // whole title card otherwise listens for Enter/Space to advance.
+    if (target?.closest?.(".title-difficulty-row button")) return;
 
     if (event.code === "Space" || event.code === "Enter") {
+      event.stopImmediatePropagation();
       advanceTitle(event);
     }
 
     if (event.code === "Escape") {
+      event.stopImmediatePropagation();
       skipTitle(event);
     }
   }
