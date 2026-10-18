@@ -152,6 +152,12 @@
 
       button.addEventListener("pointerdown", chooseDifficulty, { passive: false });
       button.addEventListener("click", (event) => {
+        // Pointerdown already selected the mode. A keyboard-generated
+        // click needs to be handled here so Enter/Space also work.
+        if (event.detail === 0) {
+          chooseDifficulty(event);
+          return;
+        }
         event.preventDefault();
         event.stopPropagation();
       });
