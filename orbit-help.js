@@ -74,7 +74,7 @@
           rows: [
             ["SHIELD", "Blocks one collision."],
             ["SLOW FIELD", "Slows nearby orbital debris for 6 seconds."],
-            ["REPAIR", "Restores one life, subject to the difficulty limit."],
+            ["REPAIR", "Restores one life. Higher difficulties offer repairs less often."],
             ["NOVA OVERDRIVE", "Charges from near misses, stars and run clears. Activates automatically for 5 seconds with a shockwave and doubled near-miss points. It does NOT accelerate Nova."],
           ],
         },
