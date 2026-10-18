@@ -365,3 +365,13 @@ a reward or SPACE WARP screen, the activation waits until running resumes.
   speed, ring jumps, invulnerability blinking, impacts, scoring,
   power-ups, and game progression exactly as they were.
 - No new controls, abilities, hitboxes, art downloads or physics changes.
+
+## Overdrive meter placement — build 2026.10.18.1
+
+- Move the OVERDRIVE charge meter from top-center to directly below the
+  music-volume slider, in the upper-left control panel. The meter is
+  anchored to the slider itself, so it follows the control on desktop
+  and narrow mobile layouts without covering the other controls.
+- Keep the gauge colors, charge display, active countdown, visibility
+  rules and all gameplay, sound and volume interactions unchanged.
+- The gauge remains pointer-events: none so it cannot block controls.
