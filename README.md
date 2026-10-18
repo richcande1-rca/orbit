@@ -405,3 +405,25 @@ a reward or SPACE WARP screen, the activation waits until running resumes.
   freezes on pause/reward cards and resets on a new game or new run.
   Existing hazards, scores, movement, ship shape, OVERDRIVE, input
   cooldowns, and game-over/SPACE WARP handling are otherwise untouched.
+
+## How to Play manual — build 2026.10.18.3
+
+- Replace the overcrowded NOVA ONLINE introduction with a concise startup
+  summary, and add a clear **HOW TO PLAY** button on that title page.
+- Add a permanent ? help control in the top toolbar. It opens the same
+  **four-page scrollable manual** during play; opening it pauses the running
+  game, and closing it resumes only if the game was running beforehand.
+- Page 1: Nova's automatic orbit, inward/outward ring moves, outer-ring
+  clear, all 12 runs, SPACE WARP cycles, difficulty modes.
+- Page 2: Keyboard **Space / Right Arrow OUT**, **Left Arrow IN**,
+  **P / Esc pause**; Enter also moves outward. Mobile IN/OUT buttons,
+  planet tap OUT and other canvas taps IN.
+- Page 3: Star points, correct 3 Easy / 5 Normal / 6 Hard extra-life
+  thresholds and life caps, near misses, shields, slow field, repair,
+  OVERDRIVE charge and five-second effect, Orbital Surge distinction.
+- Page 4: Run 4 Rescue, Run 6 Wormhole, Run 7 Hunter, Run 9
+  Constellation and their rewards, all optional.
+- Correct the old mobile TRAINING ORBIT text so it no longer incorrectly
+  says three stars grant a life on every difficulty.
+- No changes to player controls, physics, mission behavior, scoring,
+  hazards, or audio; modal blocks underlying key input while open.
