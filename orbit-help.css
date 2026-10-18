@@ -1,0 +1,181 @@
+/* How to Play is deliberately separate from gameplay: no new input mode. */
+.orbit-help-overlay[hidden] { display: none; }
+
+.orbit-help-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: max(18px, env(safe-area-inset-top)) 14px max(18px, env(safe-area-inset-bottom));
+  background: rgba(1, 5, 18, 0.89);
+  color: #eefaff;
+  overscroll-behavior: contain;
+}
+
+.orbit-help-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(660px, 100%);
+  max-height: min(730px, calc(100vh - 32px));
+  max-height: min(730px, calc(100dvh - 32px));
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(120, 228, 255, 0.42);
+  border-radius: 18px;
+  background: linear-gradient(140deg, #081b36, #0c0c29 72%);
+  box-shadow: 0 16px 70px rgba(0, 0, 0, 0.64), 0 0 28px rgba(64, 217, 255, 0.12) inset;
+}
+
+.orbit-help-header {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 22px 22px 12px;
+  border-bottom: 1px solid rgba(139, 229, 255, 0.15);
+}
+
+.orbit-help-eyebrow {
+  color: #84dceb;
+  font: 800 10px/1.2 system-ui, sans-serif;
+  letter-spacing: 0.17em;
+}
+
+.orbit-help-title {
+  margin: 7px 0 0;
+  color: #f3fcff;
+  font: 900 clamp(1.3rem, 4.5vw, 1.8rem)/1.12 system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 12px rgba(88, 227, 255, 0.25);
+}
+
+.orbit-help-close,
+.orbit-help-nav button {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 15px;
+  border: 1px solid rgba(150, 232, 255, 0.36);
+  border-radius: 999px;
+  background: rgba(30, 67, 99, 0.5);
+  color: #f4fbff;
+  font: 800 11px/1 system-ui, sans-serif;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.orbit-help-close:focus-visible,
+.orbit-help-nav button:focus-visible,
+.title-help-button:focus-visible {
+  outline: 2px solid #f9eca8;
+  outline-offset: 3px;
+}
+
+.orbit-help-nav button:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.orbit-help-scroll {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 18px 22px 22px;
+  text-align: left;
+}
+
+.orbit-help-intro {
+  color: #d9f4ff;
+  margin: 0 0 22px;
+  font-size: 0.96rem;
+  line-height: 1.5;
+}
+
+.orbit-help-section + .orbit-help-section {
+  margin-top: 21px;
+}
+
+.orbit-help-section-title {
+  margin: 0 0 9px;
+  color: #ffe4a6;
+  font: 800 11px/1.3 system-ui, sans-serif;
+  letter-spacing: 0.16em;
+}
+
+.orbit-help-rows {
+  display: grid;
+  gap: 1px;
+  border: 1px solid rgba(120, 205, 239, 0.19);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(115, 192, 230, 0.1);
+}
+
+.orbit-help-row {
+  display: grid;
+  grid-template-columns: minmax(105px, 33%) 1fr;
+  gap: 12px;
+  padding: 11px 12px;
+  background: rgba(3, 9, 26, 0.69);
+  font-size: 0.88rem;
+  line-height: 1.42;
+}
+
+.orbit-help-term {
+  color: #98f1ff;
+  font-weight: 800;
+}
+
+.orbit-help-definition {
+  color: #ebf5ff;
+}
+
+.orbit-help-nav {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 22px 18px;
+  border-top: 1px solid rgba(139, 229, 255, 0.17);
+}
+
+.orbit-help-page-number {
+  color: #a2d5ed;
+  font: 800 11px/1 system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
+.title-help-button {
+  min-height: 40px;
+  min-width: 165px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(151, 235, 255, 0.35);
+  background: rgba(5, 23, 47, 0.78);
+  color: #d9f7ff;
+  font: 800 0.78rem/1.2 system-ui, sans-serif;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  .orbit-help-header { padding: 15px 14px 10px; }
+  .orbit-help-scroll { padding: 12px 13px 20px; }
+  .orbit-help-intro { font-size: 0.88rem; }
+  .orbit-help-row {
+    grid-template-columns: minmax(76px, 33%) 1fr;
+    gap: 8px;
+    padding: 10px 9px;
+    font-size: 0.81rem;
+  }
+  .orbit-help-nav { padding: 11px 12px 13px; gap: 8px; }
+  .orbit-help-nav button { min-height: 42px; padding: 0 12px; }
+  .orbit-help-page-number { font-size: 10px; }
+}
