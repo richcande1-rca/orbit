@@ -28,7 +28,7 @@
       "Use OUT to move outward.",
       "Use IN to move inward.",
       "Dodge pink debris and collect stars.",
-      "Collect 3 stars to add a life!",
+      "Earn lives from stars: 3 Easy / 5 Normal / 6 Hard (up to life caps).",
       "Collect floating shield, slow-field, or repair upgrades mid-run.",
       "Jump outward past the outer ring to clear a run.",
       "Comets hurt less on Easy, more on Hard!",
