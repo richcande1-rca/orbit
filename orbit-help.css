@@ -179,3 +179,9 @@
   .orbit-help-nav button { min-height: 42px; padding: 0 12px; }
   .orbit-help-page-number { font-size: 10px; }
 }
+
+.orbit-help-scroll:focus-visible {
+  outline: 2px solid #84eaff;
+  outline-offset: -3px;
+  border-radius: 5px;
+}
