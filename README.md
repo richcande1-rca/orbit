@@ -375,3 +375,33 @@ a reward or SPACE WARP screen, the activation waits until running resumes.
 - Keep the gauge colors, charge display, active countdown, visibility
   rules and all gameplay, sound and volume interactions unchanged.
 - The gauge remains pointer-events: none so it cannot block controls.
+
+## Four optional orbital adventures — build 2026.10.18.2
+
+- Introduce four distinct optional arcade side missions during the existing
+  12-run progression, repeating on future cycles. The ordinary objective
+  (cross the outer ring) always remains available; no extra button,
+  control, extra life or new mandatory stage is added.
+- **Run 4 · RESCUE:** A damaged golden satellite slowly moves along a
+  middle ring. Intercept it, carry it with Nova, and cross beyond the
+  outermost ring to deliver it (+40). A collision drops the cargo and
+  respawns the satellite ahead for another opportunity.
+- **Run 6 · WORMHOLE:** A cyan entry ring and purple exit ring form a
+  visible one-way shortcut. Enter the inner gate to emerge two rings
+  farther out (+8). Safe-exit checks wait until existing traffic clears
+  instead of placing Nova inside a hazard. One transit per run prevents
+  repeated bouncing between gates.
+- **Run 7 · HUNTER:** A red tracking drone appears after Nova ventures
+  beyond the inner ring. It gradually pursues both angle and ring,
+  rather than snapping instantly. Evade for 10 seconds to earn +35;
+  contact uses ordinary collision/shield rules and ends the chase with
+  no survival bonus. Easy uses a gentler pursuit speed.
+- **Run 9 · CONSTELLATION:** Four linked, numbered-by-progress stars
+  appear on successive rings. Collect them in order for +45.
+  A damaging collision resets sequence progress, but never blocks
+  regular advancement.
+- All event visuals run on the existing canvas; objective progress
+  appears in a small non-interactive HUD badge. The event system
+  freezes on pause/reward cards and resets on a new game or new run.
+  Existing hazards, scores, movement, ship shape, OVERDRIVE, input
+  cooldowns, and game-over/SPACE WARP handling are otherwise untouched.
