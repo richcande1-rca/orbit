@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="title-screen.css?v=20260920.20" />
   <link rel="stylesheet" href="orbit-board.css?v=20261016.2" />
   <link rel="stylesheet" href="reward-cards.css?v=20260920.20" />
-  <link rel="stylesheet" href="orbit-overdrive.css?v=20261016.6" />
+  <link rel="stylesheet" href="orbit-overdrive.css?v=20261018.1" />
   <link rel="stylesheet" href="orbit-impact.css?v=20261017.3" />
 </head>
 <body class="title-screen-active">
@@ -21,10 +21,12 @@
         <button id="pause" class="control-button pause-button" type="button" aria-label="Pause game" disabled>⏸</button>
         <button id="reset" class="control-button reset-button" type="button" aria-label="Reset run" disabled>↻</button>
         <button id="sound" class="control-button sound-button" type="button" aria-label="Mute sound effects">🔊</button>
-        <label class="music-volume" aria-label="Music volume">
-          <span aria-hidden="true">♫</span>
-          <input id="music-volume" type="range" min="0" max="100" value="100" />
-        </label>
+        <div class="orbit-volume-anchor">
+          <label class="music-volume" aria-label="Music volume">
+            <span aria-hidden="true">♫</span>
+            <input id="music-volume" type="range" min="0" max="100" value="100" />
+          </label>
+        </div>
         <button id="board" class="control-button board-button" type="button" aria-label="Open Starboard">★</button>
       </div>
     </div>
@@ -88,13 +90,13 @@
   <script src="audio.js?v=20260920.20"></script>
   <script src="orbit-music.js?v=20260920.20"></script>
   <script src="mobile-controls.js?v=20261014.1"></script>
-  <script src="title-screen.js?v=20261017.4"></script>
+  <script src="title-screen.js?v=20261018.1"></script>
   <script src="orbit-board-cloud.js?v=20261016.2"></script>
   <script src="orbit-moments.js?v=20261016.6"></script>
   <script src="orbit-weather.js?v=20261015.9"></script>
   <script src="orbit-ringfall.js?v=20261015.8"></script>
   <script src="orbit-early-moments.js?v=20261016.6"></script>
-  <script src="orbit-overdrive.js?v=20261017.1"></script>
+  <script src="orbit-overdrive.js?v=20261018.1"></script>
   <script src="orbit-impact.js?v=20261017.3"></script>
   <script src="orbit-nova.js?v=20261017.4"></script>
 </body>
