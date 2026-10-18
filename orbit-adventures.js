@@ -63,7 +63,7 @@
     }
     if (kind === "hunter") {
       return {
-        kind, elapsed: 0, spawned: false, defeated: false,
+        kind, elapsed: 0, spawned: false, defeated: false, survived: false,
         drone: null, chaseSeconds: 0, spawnGrace: 0,
       };
     }
@@ -103,7 +103,8 @@
         : "WORMHOLE · Enter the cyan gate";
     }
     if (mission.kind === "hunter") {
-      if (mission.defeated) return "HUNTER · Survived!";
+      if (mission.defeated) return mission.survived
+        ? "HUNTER · Survived!" : "HUNTER · Drone contact";
       if (!mission.spawned) return "HUNTER · Incoming tracking drone";
       return "HUNTER · Survive " + Math.ceil(Math.max(0, 10 - mission.chaseSeconds)) + "s";
     }
@@ -259,6 +260,7 @@
     if (m.chaseSeconds >= 10) {
       m.drone = null;
       m.defeated = true;
+      m.survived = true;
       announce("HUNTER EVADED", REWARDS.hunter);
       syncBadge();
       return;
@@ -483,7 +485,7 @@
     carrying: !!mission?.carrying,
     portalUsed: !!mission?.used,
     hunterActive: !!mission?.drone,
-    hunterSurvived: !!(mission?.kind === "hunter" && mission.defeated),
+    hunterSurvived: !!(mission?.kind === "hunter" && mission.survived),
     constellationStep: mission?.kind === "constellation" ? mission.index : null,
   });
 
