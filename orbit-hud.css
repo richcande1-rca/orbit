@@ -1,0 +1,280 @@
+/* Nova cockpit HUD — compact permanent data, transient event banners.
+   Keep the user's OVERDRIVE gauge anchored below the volume slider. */
+body.orbit-pilot-hud-enabled .hud-header {
+  align-items: flex-start;
+}
+
+body.orbit-pilot-hud-enabled .hud-right {
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+  min-width: 0;
+}
+
+body.orbit-pilot-hud-enabled .stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 5px;
+  border-color: rgba(134, 227, 255, 0.25);
+  background: rgba(3, 13, 32, 0.82);
+  border-radius: 11px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+body.orbit-pilot-hud-enabled .stats > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 45px;
+  padding: 4px 8px;
+  border-radius: 7px;
+  color: rgba(166, 220, 245, 0.83);
+  font: 800 9px/1.2 system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(47, 123, 161, 0.07);
+}
+
+body.orbit-pilot-hud-enabled .stats strong {
+  font: 900 15px/1.1 system-ui, sans-serif;
+  letter-spacing: 0;
+  color: #f5fdff;
+}
+
+body.orbit-pilot-hud-enabled .stats > span:first-child strong {
+  color: #fff3bf;
+  font-size: 17px;
+}
+
+.orbit-pilot-readouts {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: min(420px, 100%);
+  pointer-events: none;
+}
+
+.orbit-pilot-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 25px;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid rgba(102, 217, 255, 0.28);
+  border-radius: 7px;
+  color: #bcefff;
+  background: rgba(4, 14, 34, 0.85);
+  font: 800 10px/1.15 system-ui, sans-serif;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.orbit-pilot-chip[hidden] { display: none !important; }
+
+.orbit-pilot-difficulty {
+  color: #b7d3f0;
+  border-color: rgba(157, 166, 220, 0.24);
+}
+
+.orbit-pilot-stars {
+  color: #fef0b7;
+}
+
+.orbit-pilot-star-icon {
+  color: #ffdf78;
+  font-size: 13px;
+}
+
+.orbit-pilot-star-track {
+  display: block;
+  width: 38px;
+  height: 4px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: rgba(246, 211, 119, 0.20);
+}
+
+.orbit-pilot-star-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #ffcf68, #fff5bd);
+  transition: width 140ms ease-out;
+}
+
+.orbit-pilot-life-cap .orbit-pilot-star-track { opacity: 0.36; }
+
+.orbit-pilot-shield {
+  color: #bffcff;
+  border-color: rgba(87, 242, 255, 0.55);
+  background: rgba(6, 58, 75, 0.83);
+}
+
+.orbit-pilot-slow {
+  color: #e1c9ff;
+  border-color: rgba(178, 139, 255, 0.50);
+  background: rgba(33, 20, 72, 0.83);
+}
+
+/* Existing upgrade state now lives in the pilot readouts; don't
+   display a duplicate badge at top-left. Its gameplay stays intact. */
+body.orbit-pilot-hud-enabled #orbit-upgrade-status {
+  display: none !important;
+}
+
+body.orbit-pilot-hud-enabled .orbit-adventure-status {
+  top: max(111px, calc(env(safe-area-inset-top) + 94px));
+  border-radius: 8px;
+  border-color: rgba(255, 228, 167, 0.48);
+  color: #fff4ce;
+  background: rgba(16, 22, 44, 0.89);
+}
+
+.orbit-pilot-toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(36px, calc(env(safe-area-inset-bottom) + 28px));
+  transform: translateX(-50%);
+  z-index: 13;
+  max-width: calc(100vw - 30px);
+  width: max-content;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: rgba(3, 17, 34, 0.92);
+  color: #e6fbff;
+  font: 900 clamp(11px, 2.4vw, 13px)/1.25 system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(80, 225, 255, 0.28);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease-out;
+}
+
+.orbit-pilot-toast-visible { opacity: 1; visibility: visible; }
+
+.orbit-pilot-toast-warning {
+  color: #ffe4ab;
+  border-color: rgba(255, 182, 94, 0.65);
+  background: rgba(50, 27, 16, 0.93);
+}
+
+.orbit-pilot-toast-reward {
+  color: #cefff6;
+  border-color: rgba(93, 247, 211, 0.52);
+  background: rgba(4, 43, 48, 0.93);
+}
+
+body.title-screen-active .orbit-pilot-readouts,
+body.title-screen-active .orbit-pilot-toast {
+  visibility: hidden;
+}
+
+@media (max-width: 1100px) {
+  body.orbit-pilot-hud-enabled .hud-header > .title {
+    display: none;
+  }
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  body.orbit-pilot-hud-enabled .hud-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: max(12px, env(safe-area-inset-top)) 9px 0;
+  }
+
+  body.orbit-pilot-hud-enabled .hud-left {
+    flex: 0 0 auto;
+    width: 100%;
+    justify-content: center;
+  }
+
+  body.orbit-pilot-hud-enabled .control-panel {
+    gap: 4px;
+    padding: 4px;
+    max-width: calc(100vw - 18px);
+  }
+
+  body.orbit-pilot-hud-enabled .hud-right {
+    flex: 0 0 auto;
+    width: 100%;
+    margin-top: 53px;
+    align-items: center;
+    gap: 5px;
+  }
+
+  body.orbit-pilot-hud-enabled .stats {
+    width: auto;
+    justify-content: center;
+    gap: 3px;
+    padding: 4px;
+  }
+
+  body.orbit-pilot-hud-enabled .stats > span {
+    min-width: 44px;
+    padding: 3px 7px;
+    font-size: 9px;
+    gap: 2px;
+  }
+
+  body.orbit-pilot-hud-enabled .stats strong {
+    font-size: 13px;
+  }
+
+  body.orbit-pilot-hud-enabled .stats > span:first-child strong {
+    font-size: 15px;
+  }
+
+  .orbit-pilot-readouts {
+    max-width: calc(100vw - 14px);
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .orbit-pilot-chip {
+    padding: 4px 6px;
+    font-size: 9px;
+    min-height: 23px;
+    gap: 4px;
+  }
+
+  .orbit-pilot-star-track {
+    width: 25px;
+  }
+
+  body.orbit-pilot-hud-enabled .orbit-adventure-status {
+    top: max(179px, calc(env(safe-area-inset-top) + 167px));
+    max-width: calc(100vw - 24px);
+    font-size: 9px;
+    padding: 5px 9px;
+  }
+
+  .orbit-pilot-toast {
+    bottom: max(101px, calc(env(safe-area-inset-bottom) + 93px));
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+}
+
+@media (max-height: 650px) and (pointer: coarse) {
+  body.orbit-pilot-hud-enabled .hud-right {
+    margin-top: 48px;
+  }
+  body.orbit-pilot-hud-enabled .orbit-adventure-status {
+    top: max(165px, calc(env(safe-area-inset-top) + 153px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-pilot-toast, .orbit-pilot-star-fill { transition: none; }
+}

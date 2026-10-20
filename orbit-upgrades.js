@@ -386,6 +386,13 @@
     ctx.restore();
   };
 
+  // Presentation-only state for the compact cockpit readout.
+  // Existing shield and slow-field mechanics remain unchanged.
+  window.orbitUpgradeStatus = () => ({
+    shield: shieldReady,
+    stasisSeconds,
+  });
+
   window.addEventListener("orbitdifficultychange", applyHazardBalance);
   updateBadge();
 })();
