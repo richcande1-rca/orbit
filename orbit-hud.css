@@ -175,7 +175,7 @@ body.orbit-pilot-hud-enabled .orbit-adventure-status {
 
 body.title-screen-active .orbit-pilot-readouts,
 body.title-screen-active .orbit-pilot-toast,
-body:has(.orbit-help-overlay:not([hidden])) .orbit-pilot-toast {
+body.title-screen-active .orbit-pilot-toast {
   visibility: hidden;
 }
 
