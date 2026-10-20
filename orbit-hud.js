@@ -132,8 +132,8 @@
   window.orbitPilotHudStatus = () => ({
     difficulty: window.orbitGetDifficulty?.() || "normal",
     stars: starsTowardLife,
-    shield: !!window.orbitUpgradeStatus?.().shield,
-    slowSeconds: window.orbitUpgradeStatus?.().stasisSeconds || 0,
+    shield: !!window.orbitUpgradeStatus?.()?.shield,
+    slowSeconds: window.orbitUpgradeStatus?.()?.stasisSeconds || 0,
     toast: toastTime > 0 ? toast.textContent : "",
   });
 
