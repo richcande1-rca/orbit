@@ -427,3 +427,26 @@ a reward or SPACE WARP screen, the activation waits until running resumes.
   says three stars grant a life on every difficulty.
 - No changes to player controls, physics, mission behavior, scoring,
   hazards, or audio; modal blocks underlying key input while open.
+
+## Nova cockpit HUD — build 2026.10.19.1
+
+- Consolidate the upper HUD into a compact pilot display: the existing
+  score, lives, run and cycle readouts remain bound to their original
+  elements, with clearer stacked labels and emphasized score.
+- Add a small read-only status row for star progress toward the next
+  earned life (3 Easy / 5 Normal / 6 Hard), selected difficulty, and
+  shield/slow-field indicators only while active. The normal/hard
+  life caps are indicated in the stars' accessible label.
+- Expose a read-only shield/slow-field status from the existing upgrades
+  layer to avoid duplicating or changing any upgrade mechanics. The old
+  floating upgrade badge is hidden when cockpit readouts are active.
+- Add short-lived contextual warning/reward notices for ion storms,
+  gravity pulses, hunter arrival, extra lives, upgrades and completed
+  side missions. The original comet warning, near-miss canvas effects,
+  event cards and mission badge continue to work without duplication.
+- The cockpit collapses into centered, stacked controls + stats on
+  narrow mobile screens. Mission status is placed below the star and
+  upgrade readouts, and toast notices remain above touch controls.
+- Preserve the existing OVERDRIVE gauge directly **under the music
+  volume slider**. No changes to hitboxes, motion, scoring, hazards,
+  missions, input handling or the existing power-up logic.
